@@ -1,0 +1,135 @@
+.kovai-card {
+    display: flex;
+    flex-direction: column;
+    max-width: 1100px;
+    background-color:var(--bg-color);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 8px 20px var(--bg-color);
+    margin: auto;
+    margin-top: 50px;
+    margin-bottom: 50px;
+  }
+  
+  .kovai-card img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  
+  .kovai-image-section {
+    position: relative;
+    width: 100%;
+  }
+  
+  .kovai-info-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    padding: 16px;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.6), transparent);
+    color: white;
+  }
+  
+  .kovai-info-overlay h2 {
+    margin: 0;
+    font-size: 1.8rem;
+    font-weight: bold;
+  }
+  
+  .kovai-info-overlay p {
+    display: flex;
+    align-items: center;
+    margin-top: 6px;
+    font-size: 0.95rem;
+  }
+  
+  .kovai-info-section {
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  
+  .kovai-rating {
+    display: flex;
+    align-items: center;
+    font-size: 1.2rem;
+    font-weight: 600;
+  }
+  
+  .kovai-stars {
+    color: #f59e0b;
+    display: flex;
+    align-items: center;
+    margin-left: 8px;
+  }
+  
+  .kovai-description {
+    margin-top: 12px;
+    color: var(--text--color);
+    font-size: 1rem;
+    line-height: 1.5;
+  }
+  
+  .kovai-details {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  
+  .kovai-detail-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  
+  .kovai-detail-icon {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #16a34a;
+    font-weight: 500;
+  }
+  
+  .kovai-detail-text {
+    font-weight: 600;
+    color: var(--text--color);
+  }
+  
+  .reserve-button {
+    margin-top: 24px;
+    padding: 14px;
+    width: 100%;
+    background-color: #4f46e5;
+    color: white;
+    font-weight: 600;
+    font-size: 1rem;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+  }
+  
+  .reserve-button:hover {
+    background-color: #4338ca;
+  }
+  
+  /* Responsive for larger screens */
+  @media (min-width: 768px) {
+    .kovai-card {
+      flex-direction: row;
+    }
+  
+    .kovai-image-section {
+      flex: 1;
+    }
+  
+    .kovai-info-section {
+      flex: 1;
+    }
+  }
+  .non{
+    color: var(--text--color);
+  }

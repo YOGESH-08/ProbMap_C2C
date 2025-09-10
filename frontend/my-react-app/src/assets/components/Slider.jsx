@@ -1,18 +1,19 @@
 import React from "react";
 import "./Slider.css"; // keep your CSS
+import { Link } from "react-router-dom";
 export default function Slider() {
   return (
     <main>
       <div className="mainimg">
         <div className="maininnerimg">
-          <h1 className="maintext">Turn Doubts to Dust, with questions well-bust</h1>
+          <h1 className="maintext">Turn Problems to Dust, with questions well-bust</h1>
           <p className="subtext">
-            Upload your notes & PYQs to VITGPT and help students learn smarter!
+            Upload the public problems and gain rewards!<br></br> for your humble social work which could help puplic resource
           </p>
           <div className="mainnavbutton">
-            <a href="#">
+          <Link to="/report">
               <button className="quote-btn">Upload</button>
-            </a>
+        </Link>
           </div>
         </div>
         <div className="mobile_img">

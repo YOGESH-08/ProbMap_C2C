@@ -89,7 +89,7 @@
             align-items: center;
             height: 100vh;
             margin-bottom:7vh;
-            margin-top:20vh;
+            margin-top:12vh;
         }
         .container {
             background: #1E1E1E;
@@ -100,7 +100,7 @@
             box-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
         }
         .container h1 {
-            color: #f8645c;
+            color: #f11a1a;
             margin-bottom: 5vh;
             font-size: 24px;
         }
