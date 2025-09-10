@@ -1,5 +1,5 @@
 import React from "react";
-import "./style.css"; // keep your CSS
+import "./Slider.css"; // keep your CSS
 export default function Slider() {
   return (
     <main>
