@@ -210,13 +210,13 @@ export default function Upload() {
             >
               📸 Take a Photo / Upload
             </span>
+            
           )}
         </div>
-
         <input
           type="file"
           accept="image/*"
-          capture="environment"
+          capture="camera"
           ref={fileInputRef}
           style={{ display: "none" }}
           onChange={handleFileChange}

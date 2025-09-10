@@ -93,7 +93,7 @@
             margin-top:12vh;
         }
         .container {
-            background: #272727;
+            background: linear-gradient(#165e70,#fff);
             padding: 25px;
             border-radius: 12px;
             width: 37vw;
@@ -103,7 +103,7 @@
             color:#ffffff;
         }
         .container h1 {
-            color: #e63946;
+            color: #fe0519;
             margin-bottom: 5vh;
             font-size: 24px;
             padding: 30px;

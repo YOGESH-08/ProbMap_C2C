@@ -2,6 +2,7 @@ import React from "react";
 import { FaRupeeSign, FaClock, FaMapMarkerAlt, FaHeartbeat } from "react-icons/fa";
 import { AiFillStar, AiOutlineStar } from "react-icons/ai";
 import "./Details.css"; 
+import img from "../photo/zoro.jpg"; // Your image file
 
 const Acard = ({ details }) => {
   const stars = [...Array(Math.floor(details.rating)).fill(<AiFillStar />)];
@@ -11,7 +12,7 @@ const Acard = ({ details }) => {
     <div className="flex flex-col md:flex-row rounded-2xl overflow-hidden shadow-lg max-w-5xl mx-auto">
       <div className="kovai-card">
         <div className="kovai-image-section">
-          <img src={details.image} alt={details.name} />
+          <img src={img} alt={details.name} />
           <div className="kovai-info-overlay">
             <h2>{details.name}</h2>
             <p>
@@ -23,28 +24,22 @@ const Acard = ({ details }) => {
 
         <div className="kovai-info-section p-6 flex flex-col justify-between md:w-1/2">
           <div>
-            <p className="font-bold text-lg flex items-center non">
-              Rating
-              <span className="flex items-center ml-2 text-yellow-500">
-                {stars.map((star, i) => (
-                  <span key={i}>{star}</span>
-                ))}
-                <span className="text-gray-600 ml-2 text-base non">
-                  ({details.rating})
-                </span>
-              </span>
-            </p>
+            <h2>User Description:</h2>
+            <br></br>
             <p className="mt-3 text-gray-700 non">{details.description}</p>
+            
           </div>
-
+          <div>
+            <h2>Admin Description:</h2>
+            <br/>
+            <p className="mt-3 text-gray-700 non">{details.description}</p>
+            
+          </div>
           <div className="mt-5 space-y-4">
-            <DetailRow label="Price per Hour" value={`₹ ${details.pricePerHour}`} />
-            <DetailRow icon={<FaHeartbeat />} label="Sports" value={details.sports.join(", ")} />
-            <DetailRow icon={<FaClock />} label="Open Time" value={details.openTime} />
-            <DetailRow icon={<FaClock />} label="Close Time" value={details.closeTime} />
+            
+            <DetailRow label="Money spent:" value={`₹ ${details.pricePerHour}`} />
+            
           </div>
-
-          <button className="reserve-button">Reserve Now</button>
         </div>
       </div>
     </div>
@@ -60,5 +55,5 @@ const DetailRow = ({ icon, label, value }) => (
     <div className="font-semibold text-gray-800">{value}</div>
   </div>
 );
-
+// At the bottom of your Acard.jsx
 export default Acard;
