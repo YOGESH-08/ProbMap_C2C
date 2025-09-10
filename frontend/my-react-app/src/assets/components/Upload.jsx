@@ -1,9 +1,50 @@
 import React, { useState, useRef } from "react";
 import "../Styles/upload.css";
-import Box from '@mui/material/Box';
-import TextField from '@mui/material/TextField';
+import Box from "@mui/material/Box";
+import TextField from "@mui/material/TextField";
+
+// React-Leaflet imports
+import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
+import "leaflet/dist/leaflet.css";
+import L from "leaflet";
+
+// Fix default marker icon issue
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconUrl:
+    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png",
+  iconRetinaUrl:
+    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png",
+  shadowUrl:
+    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
+});
+
+function LocationPicker({ setLocation, setAddress }) {
+  useMapEvents({
+    async click(e) {
+      const coords = { lat: e.latlng.lat, lng: e.latlng.lng };
+      setLocation(coords);
+
+      // Reverse geocoding (lat/lng -> address)
+      try {
+        const res = await fetch(
+          `https://nominatim.openstreetmap.org/reverse?format=json&lat=${coords.lat}&lon=${coords.lng}`
+        );
+        const data = await res.json();
+        setAddress(data.display_name || "Unknown location");
+      } catch (err) {
+        setAddress("Unable to fetch address");
+      }
+    },
+  });
+  return null;
+}
 
 export default function Upload() {
+  const [location, setLocation] = useState(null);
+  const [address, setAddress] = useState("");
+  const [showMap, setShowMap] = useState(false);
+
   const [formData, setFormData] = useState({
     problemType: "",
     description: "",
@@ -12,6 +53,34 @@ export default function Upload() {
 
   const [preview, setPreview] = useState(null);
   const fileInputRef = useRef(null);
+
+  const handleUseCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      alert("Geolocation not supported");
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(async (pos) => {
+      const coords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+      setLocation(coords);
+
+      // Reverse geocode for current location
+      try {
+        const res = await fetch(
+          `https://nominatim.openstreetmap.org/reverse?format=json&lat=${coords.lat}&lon=${coords.lng}`
+        );
+        const data = await res.json();
+        setAddress(data.display_name || "Unknown location");
+      } catch (err) {
+        setAddress("Unable to fetch address");
+      }
+
+      setShowMap(false);
+    });
+  };
+
+  const handleSelectOnMap = () => {
+    setShowMap(true);
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -38,20 +107,30 @@ export default function Upload() {
       return;
     }
 
-    // Here you can send the formData to backend API
-    console.log("Submitted Data:", formData);
+    if (!location) {
+      alert("Please select or use your location!");
+      return;
+    }
+
+    // Final data to send to backend
+    const submittedData = { ...formData, location, address };
+    console.log("Submitted Data:", submittedData);
     alert("Problem uploaded successfully!");
 
     // Reset form
     setFormData({ problemType: "", description: "", photo: null });
     setPreview(null);
+    setLocation(null);
+    setAddress("");
+    setShowMap(false);
   };
 
   return (
     <div className="body123">
       <div className="container">
-        <h1>REPORT PUBLIC PROPERTY DAMAGE</h1>
+        <h1>🚧 REPORT PUBLIC PROPERTY DAMAGE</h1>
 
+        {/* Problem Type */}
         <label>Problem Type:</label>
         <select
           name="problemType"
@@ -69,40 +148,46 @@ export default function Upload() {
           <option>Others</option>
         </select>
 
-        <label>Description:</label><br></br><br/>
+        {/* Description */}
+        <label>Description:</label>
+        <br />
+        <br />
         <TextField
-      id="standard-textarea"
-      label=""
-      placeholder="Describe the problem..."
-      multiline
-      variant="standard"
-      // Custom styles
-      sx={{
-        width: "90%",        // increase width
-        "& .MuiInputBase-root": {
-          color: "grey",      // text color
-        },
-        "& .MuiInput-underline:before": {
-          borderBottomColor: "gray", // underline default color
-        },
-        "& .MuiInput-underline:hover:before": {
-          borderBottomColor: "white", // underline on hover
-        },
-        "& .MuiInput-underline:after": {
-          borderBottomColor: "white", // underline on focus
-        },
-      }}
-    />
+          name="description"
+          value={formData.description}
+          onChange={handleChange}
+          placeholder="Describe the problem..."
+          multiline
+          variant="standard"
+          sx={{
+            width: "90%",
+            "& .MuiInputBase-root": { color: "grey" },
+            "& .MuiInput-underline:before": { borderBottomColor: "gray" },
+            "& .MuiInput-underline:hover:before": { borderBottomColor: "white" },
+            "& .MuiInput-underline:after": { borderBottomColor: "white" },
+          }}
+        />
+
+        {/* Upload Photo */}
         <div className="upload-box" onClick={handleCameraClick}>
           {preview ? (
             <img
               src={preview}
               alt="Preview"
-              style={{ width: "100%", maxHeight: "200px", objectFit: "cover" }}
+              style={{
+                width: "100%",
+                maxHeight: "200px",
+                objectFit: "cover",
+              }}
             />
           ) : (
-            <span style={{ color: "rgb(136, 129, 129)", textDecoration: "underline" }}>
-              Take a Photo / Upload
+            <span
+              style={{
+                color: "rgb(136, 129, 129)",
+                textDecoration: "underline",
+              }}
+            >
+              📸 Take a Photo / Upload
             </span>
           )}
         </div>
@@ -115,16 +200,56 @@ export default function Upload() {
           style={{ display: "none" }}
           onChange={handleFileChange}
         />
-        <br></br><br></br>
-        <button onClick={handleSubmit}>Submit</button>
+
+        {/* Location Buttons */}
+        <div style={{ marginTop: "15px" }}>
+          <button type="button" onClick={handleUseCurrentLocation}>
+            📍 Use My Current Location
+          </button>
+          <button type="button" onClick={handleSelectOnMap}>
+            🗺️ Select on Map
+          </button>
+        </div>
+
+        {/* Map Display */}
+        {showMap && (
+          <div style={{ height: "300px", marginTop: "15px" }}>
+            <MapContainer
+              center={[20.5937, 78.9629]} // India center
+              zoom={5}
+              style={{ height: "100%", width: "100%" }}
+            >
+              <TileLayer
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                attribution='&copy; <a href="https://osm.org/copyright">OpenStreetMap</a>'
+              />
+              <LocationPicker setLocation={setLocation} setAddress={setAddress} />
+              {location && <Marker position={[location.lat, location.lng]} />}
+            </MapContainer>
+          </div>
+        )}
+
+        {/* Show Address */}
+        {address && (
+          <p style={{ marginTop: "10px", fontStyle: "italic", color: "green" }}>
+            📍 Location: {address}
+          </p>
+        )}
+
+        {/* Submit + Reset */}
+        <br />
+        <button onClick={handleSubmit}>✅ Submit</button>
         <button
           type="reset"
           onClick={() => {
             setFormData({ problemType: "", description: "", photo: null });
             setPreview(null);
+            setLocation(null);
+            setAddress("");
+            setShowMap(false);
           }}
         >
-          Reset
+          🔄 Reset
         </button>
       </div>
     </div>
