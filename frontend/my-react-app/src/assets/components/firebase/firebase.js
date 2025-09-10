@@ -1,21 +1,23 @@
-// Import the functions you need from the SDKs you need
+// src/firebase/firebaseConfig.js
 import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
+import { getAuth } from "firebase/auth";
 
-// Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-  apiKey: import.meta.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId: import.meta.VITE_FIREBASE_PROJECT_ID,
-  storageBucket:import.meta.VITE_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: import.meta.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId: import.meta.VITE_FIREBASE_APP_ID,
-  measurementId: import.meta.VITE_FIREBASE_MEASUREMENT_ID
+  apiKey: "AIzaSyAgAtWjTI0-2H6dwKRq-quyOG9dNAlistY",
+  authDomain: "probmap-ff0a5.firebaseapp.com",
+  projectId: "probmap-ff0a5",
+  storageBucket: "probmap-ff0a5.firebasestorage.app",
+  messagingSenderId: "209031081482",
+  appId: "1:209031081482:web:a77f8a1c055b77834bb9f3",
+  measurementId: "G-7BBEDC131M"
 };
 
-// Initialize Firebase
 const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
+
+const auth = getAuth(app);
+
+console.log("Firebase initialized:", app.name);
+console.log("Auth object:", auth);
+
+export { app, auth };

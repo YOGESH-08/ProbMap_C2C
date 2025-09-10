@@ -1,10 +1,16 @@
 import React, { useState } from "react";
-import "../Styles/authform.css"
+import "../Styles/authform.css";
+
+import { auth } from "./firebase/firebase"; 
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+} from "firebase/auth";
 
 export default function AuthForms() {
   const [isRegister, setIsRegister] = useState(false);
   const [formData, setFormData] = useState({
-    loginUsername: "",
+    loginEmail: "",
     loginPassword: "",
     regUsername: "",
     regMobile: "",
@@ -12,7 +18,10 @@ export default function AuthForms() {
     regPassword: "",
   });
   const [errors, setErrors] = useState({});
-  const [showPassword, setShowPassword] = useState({ login: false, register: false });
+  const [showPassword, setShowPassword] = useState({
+    login: false,
+    register: false,
+  });
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.id]: e.target.value });
@@ -21,8 +30,10 @@ export default function AuthForms() {
   const validateInput = (id, value) => {
     if (!value.trim()) return "This field is required.";
 
-    if (id === "regEmail" && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value))
-      return "Please enter a valid email.";
+    if (id === "regEmail" || id === "loginEmail") {
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value))
+        return "Please enter a valid email.";
+    }
 
     if (id === "regMobile" && !/^\d{10}$/.test(value))
       return "Please enter a valid 10-digit mobile number.";
@@ -39,14 +50,14 @@ export default function AuthForms() {
     setErrors((prev) => ({ ...prev, [id]: msg }));
   };
 
-  const handleSubmit = (e, type) => {
+  const handleSubmit = async (e, type) => {
     e.preventDefault();
     let valid = true;
     let newErrors = {};
 
     const ids =
       type === "login"
-        ? ["loginUsername", "loginPassword"]
+        ? ["loginEmail", "loginPassword"]
         : ["regUsername", "regMobile", "regEmail", "regPassword"];
 
     ids.forEach((id) => {
@@ -58,28 +69,49 @@ export default function AuthForms() {
     setErrors(newErrors);
     if (!valid) return;
 
-    alert(`${type} form submitted! Check console.`);
-    console.log(type === "login" ? "Login submit:" : "Register submit:", formData);
+    try {
+      if (type === "login") {
+        const userCred = await signInWithEmailAndPassword(
+          auth,
+          formData.loginEmail,
+          formData.loginPassword
+        );
+        console.log(" Logged in:", userCred.user);
+        alert("Login successful!");
+      } else {
+
+        const userCred = await createUserWithEmailAndPassword(
+          auth,
+          formData.regEmail,
+          formData.regPassword
+        );
+        console.log("Registered:", userCred.user);
+        alert("Registration successful!");
+      }
+    } catch (err) {
+      console.error(" Auth Error:", err);
+      alert(err.message);
+    }
   };
 
   return (
     <div className={`wrapper ${isRegister ? "active" : ""} black-white-theme`}>
-      {/* LOGIN PANEL */}
+
       <div className="form-box login">
         <h2 className="animation">Login</h2>
         <form onSubmit={(e) => handleSubmit(e, "login")} className="animation">
           <div className="input-box">
             <input
-              id="loginUsername"
-              type="text"
+              id="loginEmail"
+              type="email"
               placeholder=" "
-              value={formData.loginUsername}
+              value={formData.loginEmail}
               onChange={handleChange}
               onBlur={handleBlur}
             />
-            <label htmlFor="loginUsername">Username</label>
-            <i className="bx bxs-user"></i>
-            <span className="error-message">{errors.loginUsername}</span>
+            <label htmlFor="loginEmail">Email</label>
+            <i className="bx bxs-envelope"></i>
+            <span className="error-message">{errors.loginEmail}</span>
           </div>
 
           <div className="input-box">
@@ -100,24 +132,35 @@ export default function AuthForms() {
                 setShowPassword((prev) => ({ ...prev, login: !prev.login }))
               }
             >
-              <i className={`bx ${showPassword.login ? "bx-hide" : "bx-show"}`}></i>
+              <i
+                className={`bx ${
+                  showPassword.login ? "bx-hide" : "bx-show"
+                }`}
+              ></i>
             </button>
             <span className="error-message">{errors.loginPassword}</span>
           </div>
 
-          <button type="submit" className="btn">Login</button>
+          <button type="submit" className="btn">
+            Login
+          </button>
           <div className="logreg-link">
             <p>
-              Don't have an account? <a href="#" onClick={() => setIsRegister(true)}>Register</a>
+              Don&apos;t have an account?{" "}
+              <a href="#" onClick={() => setIsRegister(true)}>
+                Register
+              </a>
             </p>
           </div>
         </form>
       </div>
 
-      {/* REGISTER PANEL */}
       <div className="form-box register">
         <h2 className="animation">Register</h2>
-        <form onSubmit={(e) => handleSubmit(e, "register")} className="animation">
+        <form
+          onSubmit={(e) => handleSubmit(e, "register")}
+          className="animation"
+        >
           <div className="input-box">
             <input
               id="regUsername"
@@ -175,24 +218,35 @@ export default function AuthForms() {
               type="button"
               className="toggle-password"
               onClick={() =>
-                setShowPassword((prev) => ({ ...prev, register: !prev.register }))
+                setShowPassword((prev) => ({
+                  ...prev,
+                  register: !prev.register,
+                }))
               }
             >
-              <i className={`bx ${showPassword.register ? "bx-hide" : "bx-show"}`}></i>
+              <i
+                className={`bx ${
+                  showPassword.register ? "bx-hide" : "bx-show"
+                }`}
+              ></i>
             </button>
             <span className="error-message">{errors.regPassword}</span>
           </div>
 
-          <button type="submit" className="btn">Register</button>
+          <button type="submit" className="btn">
+            Register
+          </button>
           <div className="logreg-link">
             <p>
-              Already have an account? <a href="#" onClick={() => setIsRegister(false)}>Login</a>
+              Already have an account?{" "}
+              <a href="#" onClick={() => setIsRegister(false)}>
+                Login
+              </a>
             </p>
           </div>
         </form>
       </div>
 
-      {/* SIDE INFO TEXTS */}
       <div className="info-text login">
         <h2 className="animation">Welcome Back!</h2>
         <p className="animation">
@@ -206,7 +260,6 @@ export default function AuthForms() {
         </p>
       </div>
 
-      {/* Decorative Background */}
       <div className="bg-animate"></div>
       <div className="bg-animate2"></div>
     </div>

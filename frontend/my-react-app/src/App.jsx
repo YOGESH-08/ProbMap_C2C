@@ -6,7 +6,9 @@ import Slider from "./assets/components/Slider";
 import Home from "./assets/components/Home";
 import Why from "./assets/components/Why";
 import Acard from "./assets/components/Acard";
-import AdminPage from "./assets/Admin/AdminPage"
+import AdminPage from "./assets/Admin/AdminPage";
+import AuthForms from "./assets/components/Authforms";
+
 
 function Home1() {
   return (
@@ -30,14 +32,15 @@ function History() {
 
 function App() {
   return (
-    <Router>
-      <Navbar />
-      <Routes>
-        <Route path="/" element={<Home1 />} />
-        <Route path="/report" element={<Upload />} />
-        <Route path="/history" element={<History />} />
-      </Routes>
-    </Router>
+    <AuthForms/>
+    // <Router>
+    //   <Navbar />
+    //   <Routes>
+    //     <Route path="/" element={<Home1 />} />
+    //     <Route path="/report" element={<Upload />} />
+    //     <Route path="/history" element={<History />} />
+    //   </Routes>
+    // </Router>
   );
 }
 
