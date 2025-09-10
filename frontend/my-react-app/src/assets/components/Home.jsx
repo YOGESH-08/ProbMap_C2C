@@ -1,6 +1,6 @@
 import React from "react";
 import './Home.css'
-import zoro from '../photo/zoro.jpg'
+import zoro from '../photo/construction2.jpeg'
 import { VscArrowCircleRight } from "react-icons/vsc";
 import profile from '../photo/profile.jpg'
 function Home(){

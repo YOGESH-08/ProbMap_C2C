@@ -56,7 +56,7 @@
 .search-container {
     display: flex;
     align-items: center;
-    background: #222;
+    background: #000000;
     border-radius: 25px;
     padding: 5px 10px;
 }
@@ -80,7 +80,7 @@
 }
 
 .search-btn:hover {
-    color: #888;
+    color: #514f4f;
 }
 .contact-button {
     background: transparent;
@@ -191,7 +191,7 @@
 }
 
 .maininnerimg {
-    padding: 22vh 10vw;
+    padding: 12vh 10vw;
     position: relative;
     animation: texts 3s;
     animation-iteration-count: 1;

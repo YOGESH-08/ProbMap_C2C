@@ -1,22 +1,38 @@
-import { useState } from 'react'
-import './App.css'
-import Admin from "./assets/Admin/Header.jsx"
-import Navbar from './assets/components/Navbar.jsx'
-import Home from './assets/components/Home.jsx';
-import About from './assets/components/About.jsx';
-import Why from './assets/components/Why.jsx';
-import Slider from './assets/components/Slider.jsx';
-function App() {
+import React from "react";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import Navbar from "./assets/components/Navbar";
+import Upload from "./assets/components/Upload";
+import Slider from "./assets/components/Slider";
+import Home from "./assets/components/Home";
+import Why from "./assets/components/Why";
 
+
+function Home1() {
   return (
     <>
-      <Navbar/>
-      <Slider/>
-      <Home/>
-      <About/>
-      <Why/>
+    <Slider/>
+    <Home/>
+    <Why/>
+
     </>
   );
 }
 
-export default App
+function History() {
+  return <div>History Page</div>;
+}
+
+function App() {
+  return (
+    <Router>
+      <Navbar />
+      <Routes>
+        <Route path="/" element={<Home1 />} />
+        <Route path="/report" element={<Upload />} />
+        <Route path="/history" element={<History />} />
+      </Routes>
+    </Router>
+  );
+}
+
+export default App;

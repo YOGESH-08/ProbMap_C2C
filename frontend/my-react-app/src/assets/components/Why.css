@@ -3,11 +3,12 @@
   align-items: flex-start;
   width: 100%;
   min-height: 100vh;
-  background: #2c2c2c;
+  background: #010101;
   color: #f2f2f2;
-  overflow: hidden;
   font-family: "Inter", sans-serif;
+  overflow: visible;  
 }
+
 
 /* Left scrollable part */
 .scrollable-content {
@@ -29,7 +30,7 @@
 
 .content-block h2 {
   font-size: 1.6rem;
-  color: #4a6cff;
+  color: #85868b;
   margin-bottom: 0.75rem;
   font-weight: 600;
 }
@@ -44,8 +45,7 @@
 .sticky-image {
   flex: 1;
   position: sticky;
-  top: 0;                 /* 👈 keeps it fixed until container ends */
-  align-self: flex-start; /* aligns properly */
+  top: 0;                  /* stays at top until container ends */
   height: 100vh;
   background: #111;
   display: flex;

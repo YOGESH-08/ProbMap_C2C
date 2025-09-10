@@ -1,6 +1,6 @@
 import React from "react";
 import "./Why.css"
-import pl from "../photo/pl.jpg"
+import img from "../photo/report1.jpeg"
 
 function Why(){
   return (
@@ -48,7 +48,7 @@ function Why(){
 
       {/* Right Side (Sticky Image) */}
       <div className="sticky-image">
-        <img src={pl} alt="Credit Card" />
+        <img src={img} alt="Credit Card" />
       </div>
     </div>
 
@@ -61,7 +61,7 @@ function Why(){
             <div className="features">
                 <div className="feature-item">
                 <div className="icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="none" stroke="#0019ff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="none" stroke="#85868b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
                     <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
                     <path d="M9 12l2 2 4-4"></path>
                     </svg>
@@ -74,7 +74,7 @@ function Why(){
 
                 <div className="feature-item">
                 <div className="icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="none" stroke="#0019ff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="none" stroke="#85868b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
                     <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
                     <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
                     </svg>
@@ -87,7 +87,7 @@ function Why(){
 
                 <div className="feature-item">
                 <div className="icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="none" stroke="#0019ff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="none" stroke="#85868b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
                     <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6A8.38 8.38 0 0 1 12.5 3h.5a8.5 8.5 0 0 1 8 8v.5z"></path>
                     <circle cx="12" cy="12" r="1"></circle>
                     </svg>

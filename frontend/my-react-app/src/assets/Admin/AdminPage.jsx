@@ -1,5 +1,5 @@
 import React from "react";
-import "../Styles/Admin_page.css"; // move your CSS into this file
+import "./Admin_page.css"; // move your CSS into this file
 
 export default function Dashboard() {
   return (
