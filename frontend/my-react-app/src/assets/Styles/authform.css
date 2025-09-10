@@ -2,24 +2,23 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
-html,body { height: 100%; }
 body {
   font-family: 'Poppins', sans-serif; /* black background */
-  display: flex;
-  align-items: center;
-  justify-content: center;
   min-height: 100vh;
-  background: url(https://media.istockphoto.com/id/1434195150/photo/black-white-rock-texture-with-cracks-rough-surface-mountain-surface-close-up-stone-granite.jpg?s=612x612&w=0&k=20&c=NORsdihZ2w6dWTd-YZhjPfXdF_rzEv_klf2E_7lmdFs=);
 }
 
 /* container */
 .wrapper {
   position: relative;
+  margin-top:90px;
+  margin-left:180px;
   width: 860px;
   max-width: 95vw;
   height: 520px;
   overflow: hidden;
   border-radius: 12px;
+  align-items: center;
+  justify-content: center;
   border: 2px solid rgba(255,255,255,0.12); /* subtle white border */
   box-shadow: 0 10px 40px rgba(254, 254, 254, 0.6);
   background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
