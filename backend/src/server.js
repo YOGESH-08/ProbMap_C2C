@@ -3,7 +3,7 @@ import express from "express";
 import cors from "cors";
 import connectDB from "./database/connection.js";
 import cookieParser from "cookie-parser";
-
+import router from "./routes/index.js";
 const app = express();
 
 app.use(
@@ -16,8 +16,7 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
-
-// app.use("/", router);
+app.use("/", router);
 
 connectDB();
 
