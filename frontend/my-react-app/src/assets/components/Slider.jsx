@@ -1,6 +1,7 @@
 import React from "react";
 import "./Slider.css"; // keep your CSS
 import { Link } from "react-router-dom";
+import Img from "../photo/report2.png"
 export default function Slider() {
   return (
     <main>
@@ -17,6 +18,7 @@ export default function Slider() {
           </div>
         </div>
         <div className="mobile_img">
+            <img src={Img} className="quotesimg" alt="VITGPT AI" />
         </div>
       </div>
     </main>

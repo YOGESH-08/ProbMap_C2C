@@ -1,6 +1,6 @@
 import React from "react";
 import "./Why.css"
-import img from "../photo/report2.png"
+import img from "../photo/report1.jpeg"
 
 function Why(){
   return (

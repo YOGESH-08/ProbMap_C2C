@@ -1,12 +1,13 @@
 import React from "react";
 import "./Admin_page.css"; // move your CSS into this file
+import MyChart from "./Chart"
 
 export default function Dashboard() {
   return (
     <div className="app-container">
       {/* Sidebar */}
       <aside className="sidebar">
-        <div className="company">Company name</div>
+        <div className="company">ProbMap</div>
         <nav>
           <ul>
             <li>
@@ -18,19 +19,19 @@ export default function Dashboard() {
             <li>
               <a className="nav-link" href="#">
                 <i className="fa-regular fa-file-lines"></i>
-                <span>Orders</span>
+                <span>Issues</span>
               </a>
             </li>
             <li>
               <a className="nav-link" href="#">
                 <i className="fa-solid fa-box"></i>
-                <span>Products</span>
+                <span>Pending</span>
               </a>
             </li>
             <li>
               <a className="nav-link" href="#">
                 <i className="fa-regular fa-user"></i>
-                <span>Customers</span>
+                <span>Public</span>
               </a>
             </li>
             <li>
@@ -93,8 +94,11 @@ export default function Dashboard() {
       {/* Main Content */}
       <main className="main">
         <header className="navbar">
-          <div className="company">Company name</div>
+          <div className="company">ProbMap</div>
         </header>
+        <div className="my-4 w-100">
+            <MyChart />
+        </div>
         {/* Put your main dashboard content here */}
       </main>
     </div>

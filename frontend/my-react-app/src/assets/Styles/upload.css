@@ -12,7 +12,7 @@
         .search-container {
             display: flex;
             align-items: center;
-            background: #222;
+            background: #000000;
             border-radius: 25px;
             padding: 5px 10px;
         }
@@ -82,6 +82,7 @@
         }
         .body123 {
             background-color: black;
+            box-shadow: #EAEAEA;
             color: #EAEAEA;
             font-family: 'Poppins', sans-serif;
             display: flex;
@@ -92,25 +93,28 @@
             margin-top:12vh;
         }
         .container {
-            background: #1E1E1E;
+            background: #272727;
             padding: 25px;
             border-radius: 12px;
-            width: 34vw;
+            width: 37vw;
+            padding: 30px;
             text-align: center;
-            box-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
+            box-shadow: white;
+            color:#ffffff;
         }
         .container h1 {
-            color: #f11a1a;
+            color: #e63946;
             margin-bottom: 5vh;
             font-size: 24px;
+            padding: 30px;
         }
         select, input {
             width: 100%;
             padding: 12px;
             margin: 10px 0;
             border-radius: 6px;
-            border: none;
-            background: #292929;
+            border: 1px solid #555555;
+            background-color: #333333;
             color: #EAEAEA;
             font-size: 14px;
         }
@@ -118,11 +122,11 @@
             width:93%;
         }
         .upload-box {
-            border: 2px dashed #999998;
+            border: 2px dashed #555555;
             padding: 20px;
             margin-top: 15px;
             cursor: pointer;
-            background: #292929;
+            background: #bbbbbb;
             color: #EAEAEA;
             border-radius: 6px;
             transition: background 0.3s;
@@ -131,7 +135,7 @@
             background: #333333;
         }
         button {
-            background: linear-gradient(45deg,white, grey);
+            background: linear-gradient(45deg,white, rgb(249, 245, 245));
             color: #121212;
             border: none;
             padding: 12px;

@@ -148,7 +148,7 @@ export default function Upload() {
   return (
     <div className="body123">
       <div className="container">
-        <h1>🚧 REPORT PUBLIC PROPERTY DAMAGE</h1>
+        <h1>REPORT PUBLIC PROPERTY DAMAGE</h1>
 
         <label>Problem Type:</label>
         <select

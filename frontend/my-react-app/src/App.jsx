@@ -5,7 +5,8 @@ import Upload from "./assets/components/Upload";
 import Slider from "./assets/components/Slider";
 import Home from "./assets/components/Home";
 import Why from "./assets/components/Why";
-
+import Acard from "./assets/components/Acard";
+import AdminPage from "./assets/Admin/AdminPage"
 
 function Home1() {
   return (
@@ -19,7 +20,12 @@ function Home1() {
 }
 
 function History() {
-  return <div>History Page</div>;
+  return(
+    <>
+    <Navbar/>
+    <Acard/>
+    </>
+  );
 }
 
 function App() {

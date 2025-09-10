@@ -6,7 +6,8 @@
   background: #010101;
   color: #f2f2f2;
   font-family: "Inter", sans-serif;
-  overflow: visible;  
+  overflow: visible;
+  margin-top: 100px;  
 }
 
 
@@ -44,8 +45,7 @@
 /* Right sticky image */
 .sticky-image {
   flex: 1;
-  position: sticky;
-  top: 0;                  /* stays at top until container ends */
+  position: sticky;                  /* stays at top until container ends */
   height: 100vh;
   background: #111;
   display: flex;
