@@ -14,7 +14,7 @@ function Navbar(){
                 <div className="solution">History</div>
             </div>
 
-            <div className="contact-button" id="Login">Login</div>
+            <div className="contact-button" id="Login">Logout</div>
         </div>
             
         </>

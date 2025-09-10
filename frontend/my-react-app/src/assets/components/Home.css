@@ -104,16 +104,16 @@ body{
 .card4 { z-index: 4; } */
 .card1{
     z-index: 1;
-    background-color: #a89595;
+    background-color: #959595;
 }.card2{
   z-index: 2;
-    background-color: #7f5e5e;
+    background-color: #070707;
 }.card3{
   z-index: 3;
-    background-color: #494343;
+    background-color: #595959;
 }.card4{
   z-index: 4;
-    background-color: #a79898;
+    background-color: #000000;
 }
 
 

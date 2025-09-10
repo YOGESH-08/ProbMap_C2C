@@ -1,6 +1,6 @@
 import React from "react";
 import "./Why.css"
-import pl from "./assets/pl.jpg"
+import pl from "../photo/pl.jpg"
 
 function Why(){
   return (

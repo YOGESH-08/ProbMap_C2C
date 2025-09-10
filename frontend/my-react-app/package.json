@@ -10,16 +10,14 @@
     "preview": "vite preview"
   },
   "dependencies": {
-
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-icons": "^5.5.0",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
     "@mui/icons-material": "^7.3.2",
     "@mui/material": "^7.3.2",
-    "mdb-react-ui-kit": "^9.0.0",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1"
-    "react-icons": "^5.5.0"
-
+    "mdb-react-ui-kit": "^9.0.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.33.0",
