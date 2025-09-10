@@ -1,14 +1,11 @@
 import React, { useState, useRef } from "react";
 import "../Styles/upload.css";
-import Box from "@mui/material/Box";
 import TextField from "@mui/material/TextField";
 
-// React-Leaflet imports
 import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 
-// Fix default marker icon issue
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconUrl:
@@ -25,7 +22,6 @@ function LocationPicker({ setLocation, setAddress }) {
       const coords = { lat: e.latlng.lat, lng: e.latlng.lng };
       setLocation(coords);
 
-      // Reverse geocoding (lat/lng -> address)
       try {
         const res = await fetch(
           `https://nominatim.openstreetmap.org/reverse?format=json&lat=${coords.lat}&lon=${coords.lng}`
@@ -63,7 +59,6 @@ export default function Upload() {
       const coords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
       setLocation(coords);
 
-      // Reverse geocode for current location
       try {
         const res = await fetch(
           `https://nominatim.openstreetmap.org/reverse?format=json&lat=${coords.lat}&lon=${coords.lng}`
@@ -98,8 +93,7 @@ export default function Upload() {
   const handleCameraClick = () => {
     fileInputRef.current.click();
   };
-
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!formData.problemType || !formData.description || !formData.photo) {
@@ -112,17 +106,43 @@ export default function Upload() {
       return;
     }
 
-    // Final data to send to backend
-    const submittedData = { ...formData, location, address };
-    console.log("Submitted Data:", submittedData);
-    alert("Problem uploaded successfully!");
+    try {
+      const data = new FormData();
+      data.append("title", formData.problemType);
+      data.append("description", formData.description);
+      data.append("category", formData.problemType);
+ data.append(
+      "location",
+      JSON.stringify({
+        latitude: location.lat,
+        longitude: location.lng,
+      })
+    );
+      data.append("image", formData.photo);
 
-    // Reset form
-    setFormData({ problemType: "", description: "", photo: null });
-    setPreview(null);
-    setLocation(null);
-    setAddress("");
-    setShowMap(false);
+      const res = await fetch("http://localhost:5000/issue", {
+        method: "POST",
+        body: data,
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to create issue");
+      }
+
+      const result = await res.json();
+      console.log("Issue Created:", result);
+      alert("Problem uploaded successfully!");
+
+      // Reset form
+      setFormData({ problemType: "", description: "", photo: null });
+      setPreview(null);
+      setLocation(null);
+      setAddress("");
+      setShowMap(false);
+    } catch (error) {
+      console.error(error);
+      alert(" Error submitting issue: " + error.message);
+    }
   };
 
   return (
@@ -130,7 +150,6 @@ export default function Upload() {
       <div className="container">
         <h1>🚧 REPORT PUBLIC PROPERTY DAMAGE</h1>
 
-        {/* Problem Type */}
         <label>Problem Type:</label>
         <select
           name="problemType"
@@ -148,7 +167,6 @@ export default function Upload() {
           <option>Others</option>
         </select>
 
-        {/* Description */}
         <label>Description:</label>
         <br />
         <br />
@@ -163,12 +181,15 @@ export default function Upload() {
             width: "90%",
             "& .MuiInputBase-root": { color: "grey" },
             "& .MuiInput-underline:before": { borderBottomColor: "gray" },
-            "& .MuiInput-underline:hover:before": { borderBottomColor: "white" },
-            "& .MuiInput-underline:after": { borderBottomColor: "white" },
+            "& .MuiInput-underline:hover:before": {
+              borderBottomColor: "white",
+            },
+            "& .MuiInput-underline:after": {
+              borderBottomColor: "white",
+            },
           }}
         />
 
-        {/* Upload Photo */}
         <div className="upload-box" onClick={handleCameraClick}>
           {preview ? (
             <img
@@ -200,8 +221,6 @@ export default function Upload() {
           style={{ display: "none" }}
           onChange={handleFileChange}
         />
-
-        {/* Location Buttons */}
         <div style={{ marginTop: "15px" }}>
           <button type="button" onClick={handleUseCurrentLocation}>
             📍 Use My Current Location
@@ -211,11 +230,10 @@ export default function Upload() {
           </button>
         </div>
 
-        {/* Map Display */}
         {showMap && (
           <div style={{ height: "300px", marginTop: "15px" }}>
             <MapContainer
-              center={[20.5937, 78.9629]} // India center
+              center={[20.5937, 78.9629]} 
               zoom={5}
               style={{ height: "100%", width: "100%" }}
             >
@@ -229,14 +247,12 @@ export default function Upload() {
           </div>
         )}
 
-        {/* Show Address */}
         {address && (
           <p style={{ marginTop: "10px", fontStyle: "italic", color: "green" }}>
             📍 Location: {address}
           </p>
         )}
 
-        {/* Submit + Reset */}
         <br />
         <button onClick={handleSubmit}>✅ Submit</button>
         <button
