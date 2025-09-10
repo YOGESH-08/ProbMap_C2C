@@ -4,28 +4,26 @@
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html,body { height: 100%; }
 body {
-  font-family: 'Poppins', sans-serif;
-  background: #000; /* black background */
+  font-family: 'Poppins', sans-serif; /* black background */
   display: flex;
   align-items: center;
   justify-content: center;
   min-height: 100vh;
+  background: url(https://media.istockphoto.com/id/1434195150/photo/black-white-rock-texture-with-cracks-rough-surface-mountain-surface-close-up-stone-granite.jpg?s=612x612&w=0&k=20&c=NORsdihZ2w6dWTd-YZhjPfXdF_rzEv_klf2E_7lmdFs=);
 }
 
 /* container */
 .wrapper {
-    position: relative;
-    width: 860px;
-    max-width: 95vw;
-    height: 520px;
-    overflow: hidden;
-    border-radius: 12px;
-    border: 2px solid rgba(16, 17, 17, 0.25); /* soft blue border */
-    box-shadow: 0 10px 40px rgba(247, 244, 244, 0.6);
-    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-    transition: box-shadow 0.4s ease, border-color 0.4s ease;
-  }
-  
+  position: relative;
+  width: 860px;
+  max-width: 95vw;
+  height: 520px;
+  overflow: hidden;
+  border-radius: 12px;
+  border: 2px solid rgba(255,255,255,0.12); /* subtle white border */
+  box-shadow: 0 10px 40px rgba(254, 254, 254, 0.6);
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+}
 
 /* form boxes */
 .form-box {
@@ -234,13 +232,13 @@ body {
   top: -120px;
   right: -260px;
   /* keep gradient feel but monochrome */
-  background: linear-gradient(45deg, #373737 0%, rgba(72, 70, 70, 0.06) 100%);
+  background: linear-gradient(45deg, #313030 0%, rgba(61, 60, 60, 0.06) 100%);
   transform: rotate(12deg) skewY(30deg);
 }
 .bg-animate2 {
   bottom: -200px;
   left: -200px;
-  background: linear-gradient(180deg, rgb(4, 4, 4), rgba(0, 0, 0, 0.6));
+  background: linear-gradient(180deg, rgba(0,0,0,1), rgba(0, 0, 0, 0.6));
   transform: rotate(-6deg) skewY(-6deg);
 }
 
@@ -255,41 +253,3 @@ body {
   .info-text { display: none; } /* hide side info on small screens */
   .bg-animate, .bg-animate2 { display: none; }
 }
-/* ADMIN panel (hidden by default) */
-.form-box.admin {
-    right: 0;
-    pointer-events: none;
-    opacity: 0;
-    transform: translateX(30px);
-    transition: transform .7s, opacity .6s;
-  }
-  
-  /* show ADMIN when active */
-  .wrapper.admin-active .form-box.login,
-  .wrapper.admin-active .form-box.register {
-    opacity: 0;
-    pointer-events: none;
-    transform: translateX(-30px);
-  }
-  .wrapper.admin-active .form-box.admin {
-    pointer-events: auto;
-    opacity: 1;
-    transform: translateX(0);
-  }
-  
-  /* INFO TEXT for admin */
-  .info-text.admin {
-    left: 0;
-    opacity: 0;
-    transform: translateX(-20px);
-    transition: transform .8s, opacity .6s;
-  }
-  .wrapper.admin-active .info-text.login,
-  .wrapper.admin-active .info-text.register {
-    opacity: 0;
-  }
-  .wrapper.admin-active .info-text.admin {
-    opacity: 1;
-    transform: translateX(0);
-  }
-  
