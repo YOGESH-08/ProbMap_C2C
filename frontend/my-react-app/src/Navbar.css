@@ -1,0 +1,61 @@
+/* Container */
+
+.container-nav {
+    z-index: 100;
+    position: sticky;
+    top: 0px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 15px 40px;
+  /* background: linear-gradient(90deg, #0d0d0d, #2c0f16, #2f1e57, #3b3fa1, #4f64c7); */
+  background-color: black;
+  color: white;
+  font-family: Arial, Helvetica, sans-serif;
+  height: 50px;
+}
+
+/* Left logo */
+.left-nav {
+  font-size: 20px;
+  font-weight: bold;
+  letter-spacing: 1px;
+}
+
+/* Middle nav */
+.mid-nav {
+  display: flex;
+  gap: 40px;
+  font-size: 16px;
+}
+
+.mid-nav div {
+  cursor: pointer;
+  color: #ddd;
+  transition: color 0.3s ease;
+  text-transform: capitalize;
+}
+.mid-nav home:active{
+    color: #c7c7dc;
+}
+.mid-nav div:hover {
+  color: #515171;
+}
+  
+/* Right nav button */
+.contact-button {
+    background: transparent;
+    border: 1.5px solid white;
+    color: white;
+    padding: 8px 20px;
+    border-radius: 25px;
+    text-decoration: none;
+    font-size: 14px;
+    transition: all 0.3s ease-in-out;
+}
+.contact-button:hover {
+    background: white;
+    color: black;
+    transform: scale(1.05);
+    cursor: pointer;
+}
