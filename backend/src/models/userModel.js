@@ -2,7 +2,11 @@ import mongoose from "mongoose";
 
 const userSchema = new mongoose.Schema(
   {
-    name: {
+    firebaseUID: {
+      type: String,
+      unique: true,
+    },
+    fullName: {
       type: String,
       required: true,
       trim: true,
@@ -13,25 +17,32 @@ const userSchema = new mongoose.Schema(
       unique: true,
       lowercase: true,
     },
-    password: {
+    phone: {
       type: String,
-      required: [true, "Password is required"],
-      minlength: 6,
-      select: false, 
+      required: true,
     },
-    isAdmin:{
-        type:Boolean,
-        default:false,
+    loginMethod: {
+      type: String,
+      enum: ["google", "email"],
+      default: "email",
+    },
+    isAdmin: {
+      type: Boolean,
+      default: false,
     },
     role: {
       type: String,
       enum: ["user", "admin"],
       default: "user",
     },
-    numIssueRaised:{
-        type:Number,
-        default:0,
-    }
+    addresses: {
+      type: [String],
+      default: [],
+    },
+    numIssueRaised: {
+      type: Number,
+      default: 0,
+    },
   },
   { timestamps: true }
 );
