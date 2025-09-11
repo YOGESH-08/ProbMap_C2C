@@ -74,8 +74,8 @@ function App() {
       <Routes>
         <Route path="/" element={<Home1 />} />
         <Route path="/report" element={<Upload />} />
-        <Route path="/pending" element={<Pending/>}/>
-        <Route path="/history" element={<UserIssues />} />
+        <Route path="/pending" element={<UserIssues filterStatus="pending" />} />
+        <Route path="/history" element={<UserIssues filterStatus="history" />} />
       </Routes>
     </Router>
   );

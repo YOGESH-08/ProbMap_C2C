@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import Acard from "./Acard";
 
-const UserIssues = () => {
+const UserIssues = ({ filterStatus }) => {
   const [issues, setIssues] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -13,28 +13,35 @@ const UserIssues = () => {
         credentials: "include",
       });
       if (!res.ok) {
-      const errData = await res.json();
-      throw new Error(errData.error || "Failed to fetch issues");
-    }
+        const errData = await res.json();
+        throw new Error(errData.error || "Failed to fetch issues");
+      }
       const data = await res.json();
-      console.log("GOT user issues : ",data);
-      if (!res.ok) throw new Error(data.error || "Failed to fetch issues");
-      setIssues(data);
+
+      let filtered = data;
+      if (filterStatus === "pending") {
+        filtered = data.filter((issue) => issue.status === "pending");
+      } else if (filterStatus === "history") {
+        filtered = data.filter((issue) => issue.status !== "pending");
+      }
+
+      setIssues(filtered);
     } catch (err) {
-        console.error("Fetch error:", err);
+      console.error("Fetch error:", err);
       setError(err.message);
     } finally {
       setLoading(false);
     }
   };
+
   useEffect(() => {
     fetchIssues();
-  }, []);
+  }, [filterStatus]);
 
   const deleteIssue = async (id) => {
     if (!window.confirm("Are you sure you want to delete this issue?")) return;
     try {
-      const res = await fetch(`/api/issues/${id}`, {
+      const res = await fetch(`http://localhost:5000/issue/${id}`, {
         method: "DELETE",
         credentials: "include",
       });
@@ -48,7 +55,8 @@ const UserIssues = () => {
 
   if (loading) return <p>Loading your issues...</p>;
   if (error) return <p style={{ color: "red" }}>{error}</p>;
-  if (issues.length === 0) return <p>No issues raised yet.</p>;
+  if (issues.length === 0)
+    return <p>No {filterStatus === "pending" ? "pending" : "resolved/rejected/acknowledged"} issues found.</p>;
 
   return (
     <div className="space-y-6">
