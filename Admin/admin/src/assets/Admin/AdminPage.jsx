@@ -99,6 +99,20 @@ export default function Dashboard() {
         <div className="my-4 w-100">
             <MyChart />
         </div>
+        <div className="issue-holder">
+            <div className="box box1">
+              <p>lorem</p>
+            </div>
+            <div className="box box1">
+              <p>lorem</p>
+            </div>
+            <div className="box box1">
+              <p>lorem</p>
+            </div>
+            <div className="box box1">
+              <p>lorem</p>
+            </div>
+        </div>
         {/* Put your main dashboard content here */}
       </main>
     </div>

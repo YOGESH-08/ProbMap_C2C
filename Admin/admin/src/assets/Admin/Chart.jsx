@@ -1,4 +1,5 @@
 import React from "react";
+import "./Chart.css"; // move your CSS into this file
 import {
   Chart as ChartJS,
   CategoryScale,
