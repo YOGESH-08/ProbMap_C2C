@@ -9,8 +9,8 @@ const SuperAdminDashboard = () => {
 
   const handleLogin = (e) => {
     e.preventDefault();
-    const superAdminEmail = "superadmin@example.com";
-    const superAdminPassword = "admin123";
+    const superAdminEmail = "vit@gmail.com";
+    const superAdminPassword = "vit123";
 
     if (loginForm.email === superAdminEmail && loginForm.password === superAdminPassword) {
       setIsAuthenticated(true);

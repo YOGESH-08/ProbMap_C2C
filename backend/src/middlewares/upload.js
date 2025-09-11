@@ -7,6 +7,7 @@ const upload = multer({
       "image/jpeg",
       "image/png",
       "text/plain",
+      "image/jpg",
       "application/octet-stream",
     ];
 

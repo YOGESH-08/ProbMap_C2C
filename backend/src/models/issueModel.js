@@ -7,38 +7,31 @@ const issueSchema = new mongoose.Schema(
     category: { type: String, required: true },
 
     location: {
-      latitude: { type: Number, required: true },
-      longitude: { type: Number, required: true },
+      lat: { type: Number, required: true },
+      lng: { type: Number, required: true },
     },
 
-    district: { 
-      type: String, 
-      required: true,
-      trim: true,
-    },
+    district: { type: String, required: true, trim: true },
 
-    imageUrl: String,
+    imageUrl: { type: String },
 
-    status: { 
-      type: String, 
-      enum: ["pending", "acknowledged", "rejected", "resolved"], 
-      default: "pending" 
-    },
+    importance: { type: String },
+    cost_estimate: { type: String, default: "0" },
+    is_public_property: { type: Boolean, default: true },
 
-    severity: {
+    status: {
       type: String,
-      enum: ["low", "medium", "high", "critical"],
-      default: "low",
+      enum: ["pending", "acknowledged", "rejected", "resolved"],
+      default: "pending",
     },
 
-    userId: {
-      type: String, 
-      required: true,
-    },
+    severity: { type: String }, 
+
+    userId: { type: String, required: true },
 
     adminResponse: {
       message: { type: String },
-      respondedBy: { type: String }, 
+      respondedBy: { type: String },
       respondedAt: { type: Date },
     },
   },

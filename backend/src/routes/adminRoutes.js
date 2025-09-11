@@ -1,17 +1,18 @@
 import express from "express";
 import AdminController from "../controllers/adminController.js";
 import adminAuth from "../middlewares/adminAuth.js";
+import firebaseAuth from "../middlewares/firebaseAuth.js";
 
 const router = express.Router();
 
 router.get(
-  "/issues",
+  "/city-issues",
   adminAuth.verifyToken,
   AdminController.getCityIssues
 );
 
 router.patch(
-  "/issues/:id",
+  "/update-issue/:id",
   adminAuth.verifyToken,
   AdminController.updateIssueStatus
 );

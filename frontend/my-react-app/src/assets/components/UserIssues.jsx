@@ -66,10 +66,10 @@ const UserIssues = ({ filterStatus }) => {
   details={{
     id: issue._id,
     name: issue.title,
-    location: `${issue.location.latitude}, ${issue.location.longitude}`,
+    location: `${issue.location.lat}, ${issue.location.lng}`,
     description: issue.description,
     adminDescription: issue.adminResponse?.message || "Pending",
-    severity: issue.severity,
+    severity: issue.importance,
     status: issue.status,
     imageUrl: issue.imageUrl,      
     district: issue.district || "", 

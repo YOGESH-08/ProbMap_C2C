@@ -5,14 +5,22 @@ import User from "../models/userModel.js";
 export const createIssue = async (req, res) => {
   const firebaseUID = req.user?.uid;
   if (!firebaseUID) {
-    res.status(401).json({ message: "Unauthorized. No Firebase user identified." });
-    return;
+    return res.status(401).json({ message: "Unauthorized. No Firebase user identified." });
   }
 
   try {
-    const { title, description, category, location, district } = req.body; 
-    let imageUrl = null;
+    const {
+      title,
+      description,
+      category,
+      location,
+      district,
+      importance,
+      cost_estimate,
+      is_public_property,
+    } = req.body;
 
+    let imageUrl = null;
     if (req.file) {
       const result = await uploadBufferToCloudinary(
         req.file.buffer,
@@ -26,8 +34,11 @@ export const createIssue = async (req, res) => {
       title,
       description,
       category,
-      location: JSON.parse(location),
-      district, 
+      location: JSON.parse(location), // expect { lat, lng }
+      district: district || "Unknown",
+      importance: importance || "Medium",
+      cost_estimate: cost_estimate || "0",
+      is_public_property: is_public_property === "yes" ? true : false,
       imageUrl,
       userId: firebaseUID,
     });
@@ -51,7 +62,6 @@ export const getIssuesByUserId = async (req, res) => {
 
   try {
     const issues = await Issue.find({ userId: firebaseUID })
-    .populate("title description category district location imageUrl createdAt")
     .sort({ createdAt: -1 })
     
     res.status(200).json(issues);
