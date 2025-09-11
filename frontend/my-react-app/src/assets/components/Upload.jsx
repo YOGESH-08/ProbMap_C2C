@@ -205,7 +205,7 @@ const handleFileChange = (e) => {
     e.preventDefault();
     setLoading(true);
     try {
-      if (!formData.problemType || !formData.description || !formData.photo) {
+      if (!formData.description || !formData.photo) {
         alert("Please fill all fields and take/upload a photo!");
         return;
       }
@@ -291,23 +291,6 @@ const handleFileChange = (e) => {
     <div className="body123">
       <div className="container">
         <h1>REPORT PUBLIC PROPERTY DAMAGE</h1>
-
-        <label>Problem Type:</label>
-        <select
-          name="problemType"
-          value={formData.problemType}
-          onChange={handleChange}
-          style={{ width: "90%", padding: "8px", marginTop: "6px" }}
-        >
-          <option value="">Select Problem</option>
-          <option>Pothole</option>
-          <option>Traffic Signals</option>
-          <option>Pipelines</option>
-          <option>Drainage</option>
-          <option>Street Light</option>
-          <option>Public Tap</option>
-          <option>Others</option>
-        </select>
 
         <label style={{ marginTop: 12 }}>Description:</label>
         <TextField

@@ -1,14 +1,40 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "./Admin_page.css";
 import MyChart from "./Chart";
 import { signOut } from "firebase/auth";
 import { auth } from "../../components/firebase/firebaseConfig.js";
 import { useNavigate } from "react-router-dom";
+import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
+import MapSection from "./Leaf.jsx"
 import Img from "../photo/dog.jpg"
 
 export default function Dashboard() {
+  
   const [activeView, setActiveView] = useState("dashboard");
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [isMobile, setIsMobile] = useState(false);
   const navigate = useNavigate();
+
+  // Check if device is mobile
+  useEffect(() => {
+    const checkIsMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+      if (window.innerWidth <= 768) {
+        setSidebarOpen(false);
+      } else {
+        setSidebarOpen(true);
+      }
+    };
+
+    checkIsMobile();
+    window.addEventListener('resize', checkIsMobile);
+    
+    return () => {
+      window.removeEventListener('resize', checkIsMobile);
+    };
+  }, []);
 
   const handleLogout = async () => {
     try {
@@ -20,6 +46,17 @@ export default function Dashboard() {
     }
   };
 
+  const toggleSidebar = () => {
+    setSidebarOpen(!sidebarOpen);
+  };
+
+  const handleNavClick = (view) => {
+    setActiveView(view);
+    if (isMobile) {
+      setSidebarOpen(false);
+    }
+  };
+
   const renderContent = () => {
     switch(activeView) {
       case "dashboard":
@@ -28,13 +65,13 @@ export default function Dashboard() {
             <MyChart />
           </div>
         );
-        case "issues":
+      case "issues":
         return (
           <div className="issues-content">
             <h2>Reported Issues</h2>
             <div className="issues-list">
               <IssueCard
-                imageUrl="https://via.placeholder.com/80x80.png?text=Photo"
+                imageUrl={Img}
                 problem="Broken Traffic Signal"
                 description="Traffic light not working at intersection."
                 severity="High"
@@ -43,7 +80,7 @@ export default function Dashboard() {
                 state="Delhi"
               />
               <IssueCard
-                imageUrl="https://via.placeholder.com/80x80.png?text=Photo"
+                imageUrl={Img}
                 problem="Garbage Pile Up"
                 description="Garbage not collected for 10 days."
                 severity="Medium"
@@ -54,13 +91,13 @@ export default function Dashboard() {
             </div>
           </div>
         );
-        case "pending":
+      case "pending":
         return (
           <div className="pending-content">
             <h2>Pending Approvals</h2>
             <div className="pending-list">
               <IssueCard
-                imageUrl="https://via.placeholder.com/80x80.png?text=Photo"
+                imageUrl={Img}
                 problem="New Park Proposal"
                 description="Request for new community park."
                 severity="Low"
@@ -69,7 +106,7 @@ export default function Dashboard() {
                 state="Telangana"
               />
               <IssueCard
-                imageUrl="https://via.placeholder.com/80x80.png?text=Photo"
+                imageUrl={Img}
                 problem="Road Widening Project"
                 description="Proposal to widen congested road."
                 severity="Medium"
@@ -80,7 +117,7 @@ export default function Dashboard() {
             </div>
           </div>
         );
-        case "public":
+      case "public":
         return (
           <div className="public-content">
             <div className="content-header">
@@ -156,7 +193,7 @@ export default function Dashboard() {
                 </div>
                 <div className="table-row">
                   <span className="user">
-                    <img src={Img}  className="img1" alt="User" />
+                    <img src={Img} className="img1" alt="User" />
                     Vikram Mehta
                   </span>
                   <span className="type">Issue Resolved</span>
@@ -711,6 +748,8 @@ export default function Dashboard() {
             </div>
           </div>
         );
+      case "map":
+        return <MapSection />;
       default:
         return (
           <div className="dashboard-content">
@@ -722,8 +761,15 @@ export default function Dashboard() {
 
   return (
     <div className="app-container">
-      {/* Sidebar */}
-      <aside className="sidebar">
+      {/* Mobile menu toggle button */}
+      {isMobile && (
+        <button className="mobile-menu-toggle" onClick={toggleSidebar}>
+          <i className={`fa-solid ${sidebarOpen ? 'fa-xmark' : 'fa-bars'}`}></i>
+        </button>
+      )}
+
+      {/* Sidebar with responsive classes */}
+      <aside className={`sidebar ${sidebarOpen ? 'open' : 'closed'} ${isMobile ? 'mobile' : ''}`}>
         <div className="company">ProbMap</div>
         <nav>
           <ul>
@@ -731,7 +777,7 @@ export default function Dashboard() {
               <a 
                 className={`nav-link ${activeView === "dashboard" ? "active" : ""}`} 
                 href="#"
-                onClick={() => setActiveView("dashboard")}
+                onClick={() => handleNavClick("dashboard")}
               >
                 <i className="fa-solid fa-chart-line"></i>
                 <span>Dashboard</span>
@@ -741,7 +787,7 @@ export default function Dashboard() {
               <a
                 className={`nav-link ${activeView === "issues" ? "active" : ""}`}
                 href="#"
-                onClick={() => setActiveView("issues")}
+                onClick={() => handleNavClick("issues")}
               >
                 <i className="fa-regular fa-file-lines"></i>
                 <span>Issues</span>
@@ -750,7 +796,7 @@ export default function Dashboard() {
             <li>
               <a 
                 className={`nav-link ${activeView === "pending" ? "active" : ""}`}
-                onClick={() => setActiveView("pending")}
+                onClick={() => handleNavClick("pending")}
               >
                 <i className="fa-solid fa-box"></i>
                 <span>Pending</span>
@@ -759,7 +805,7 @@ export default function Dashboard() {
             <li>
               <a 
                 className={`nav-link ${activeView === "public" ? "active" : ""}`}
-                onClick={() => setActiveView("public")}
+                onClick={() => handleNavClick("public")}
               >
                 <i className="fa-regular fa-user"></i>
                 <span>Public</span>
@@ -768,7 +814,7 @@ export default function Dashboard() {
             <li>
               <a 
                 className={`nav-link ${activeView === "reports" ? "active" : ""}`}
-                onClick={() => setActiveView("reports")}
+                onClick={() => handleNavClick("reports")}
               >
                 <i className="fa-regular fa-flag"></i>
                 <span>Reports</span>
@@ -777,7 +823,7 @@ export default function Dashboard() {
             <li>
               <a 
                 className={`nav-link ${activeView === "integrations" ? "active" : ""}`}
-                onClick={() => setActiveView("integrations")}
+                onClick={() => handleNavClick("integrations")}
               >
                 <i className="fa-solid fa-plug"></i>
                 <span>Integrations</span>
@@ -786,10 +832,19 @@ export default function Dashboard() {
             <li>
               <a 
                 className={`nav-link ${activeView === "monthly" ? "active" : ""}`}
-                onClick={() => setActiveView("monthly")}
+                onClick={() => handleNavClick("monthly")}
               >
                 <i className="fa-solid fa-chart-column"></i>
                 <span>Monthly Reports</span>
+              </a>
+            </li>
+            <li>
+              <a 
+                className={`nav-link ${activeView === "map" ? "active" : ""}`}
+                onClick={() => handleNavClick("map")}
+                >
+              <i className="fa-solid fa-map"></i>
+              <span>Map View</span>
               </a>
             </li>
           </ul>
@@ -807,6 +862,11 @@ export default function Dashboard() {
           </div>
         </nav>
       </aside>
+
+      {/* Mobile overlay */}
+      {isMobile && sidebarOpen && (
+        <div className="sidebar-overlay" onClick={() => setSidebarOpen(false)}></div>
+      )}
 
       <main className="main">
         <header className="navbar">
