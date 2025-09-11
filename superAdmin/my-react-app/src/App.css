@@ -1,3 +1,28 @@
+:root {
+  --bg-dark: #0f111a;
+  --bg-glass: rgba(255, 255, 255, 0.05);
+  --bg-glass-hover: rgba(255, 255, 255, 0.12);
+  --accent: #4cc9f0;
+  --accent-hover: #4895ef;
+  --danger: #ef476f;
+  --danger-hover: #d90429;
+  --text: #fff;
+  --muted: #a0a0a0;
+  --radius: 14px;
+  --shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  --transition: all 0.3s ease;
+  --font: 'Segoe UI', Arial, sans-serif;
+}
+
+body {
+  font-family: var(--font);
+  background: var(--bg-dark);
+  color: var(--text);
+  margin: 0;
+  padding: 0;
+}
+
+/* Container */
 .dashboard-dark-container {
   min-height: 100vh;
   width: 100vw;
@@ -21,6 +46,7 @@
   text-shadow: 0 2px 8px #000a;
 }
 
+/* Form */
 .form-create-admin {
   background: #232946;
   border-radius: 18px;
@@ -74,11 +100,15 @@
   color: #f4d35e;
 }
 
+/* Error */
 .error-message {
-  color: #ff4d4f;
-  margin-top: 10px;
+  color: var(--danger);
+  font-size: 0.95rem;
+  margin-bottom: 20px;
+  text-align: center;
 }
 
+/* City Filter */
 .city-nav {
   display: flex;
   gap: 18px;
@@ -95,6 +125,8 @@
   font-weight: 500;
   cursor: pointer;
   transition: background 0.2s, color 0.2s, border 0.2s;
+  transition: var(--transition);
+  font-size: 0.95rem;
 }
 
 .city-nav button.active,
@@ -104,6 +136,7 @@
   border: 1.5px solid #ee964b;
 }
 
+/* Admin Cards */
 .admin-cards {
   display: flex;
   flex-wrap: wrap;
@@ -178,3 +211,4 @@
     padding: 18px 6vw 18px 6vw;
   }
 }
+  
