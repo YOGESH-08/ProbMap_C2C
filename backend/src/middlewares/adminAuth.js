@@ -1,8 +1,7 @@
-// middlewares/adminAuthMiddleware.js
 import jwt from "jsonwebtoken";
 import Admin from "../models/adminModel.js";
 
-const JWT_SECRET = process.env.JWT_SECRET || "supersecret"; 
+const JWT_SECRET = process.env.JWT_SECRET || "supersecret";
 
 class AdminAuthMiddleware {
   verifyToken = async (req, res, next) => {
@@ -17,6 +16,10 @@ class AdminAuthMiddleware {
 
       const admin = await Admin.findById(decoded.adminId);
       if (!admin) return res.status(404).json({ error: "Admin not found" });
+
+      if (!admin.isAdmin) {
+        return res.status(403).json({ error: "Forbidden. Not an admin." });
+      }
 
       req.admin = admin; 
       next();

@@ -5,7 +5,7 @@ const adminSchema = new mongoose.Schema(
     firebaseUID: {
       type: String,
       unique: true,
-      required: true, 
+      required: true,
     },
     email: {
       type: String,
@@ -13,8 +13,9 @@ const adminSchema = new mongoose.Schema(
       required: true,
     },
     fullName: { type: String, required: true },
-    city: { type: String, required: true }, 
-    role: { type: String, default: "admin" }, 
+    city: { type: String, required: true },
+    role: { type: String, default: "admin" },
+    isAdmin: { type: Boolean, default: true }, 
   },
   { timestamps: true }
 );
