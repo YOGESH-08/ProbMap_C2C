@@ -3,7 +3,8 @@ import "./Admin_page.css";
 import MyChart from "./Chart";
 import { signOut } from "firebase/auth";
 import { auth } from "../../components/firebase/firebaseConfig.js";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Route, Routes } from "react-router-dom";
+import PendingPage from "./PendingPage";
 
 export default function Dashboard() {
   const [showChart, setShowChart] = useState(true);
@@ -44,7 +45,7 @@ export default function Dashboard() {
               </a>
             </li>
             <li>
-              <a className="nav-link" href="#">
+              <a className="nav-link" onClick={() => navigate("/pending")}>
                 <i className="fa-solid fa-box"></i>
                 <span>Pending</span>
               </a>
@@ -149,11 +150,15 @@ export default function Dashboard() {
 
       </main>
     </div>
+
+    <Routes>
+      {/* Other routes */}
+      <Route path="/pending" element={<PendingPage />} />
+    </Routes>
     </>
   );
 }
 
-// Add IssueCard component above export
 function IssueCard({ imageUrl, problem, description, severity, type, city, state }) {
   return (
     <div className="issue-card">
@@ -169,9 +174,6 @@ function IssueCard({ imageUrl, problem, description, severity, type, city, state
           <span className="issue-location">{city}, {state}</span>
         </div>
       </div>
-    </div>
-    
-      </main>
     </div>
   );
 }
