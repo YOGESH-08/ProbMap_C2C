@@ -1,0 +1,7 @@
+frontend/
+superAdmin/
+Admin/
+.DS_Store
+*.log
+__pycache__/
+*.pyc
