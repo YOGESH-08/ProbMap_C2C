@@ -1,8 +1,10 @@
-import React from "react";
-import "./Admin_page.css"; // move your CSS into this file
-import MyChart from "./Chart"
+import React, { useState } from "react";
+import "./Admin_page.css";
+import MyChart from "./Chart";
 
 export default function Dashboard() {
+  const [showChart, setShowChart] = useState(true);
+
   return (
     <div className="app-container">
       {/* Sidebar */}
@@ -17,7 +19,11 @@ export default function Dashboard() {
               </a>
             </li>
             <li>
-              <a className="nav-link" href="#">
+              <a
+                className="nav-link"
+                href="#"
+                onClick={() => setShowChart(false)} // 🔹 Hide chart, show issues
+              >
                 <i className="fa-regular fa-file-lines"></i>
                 <span>Issues</span>
               </a>
@@ -96,25 +102,33 @@ export default function Dashboard() {
         <header className="navbar">
           <div className="company">ProbMap</div>
         </header>
-        <div className="my-4 w-100">
-            <MyChart />
+
+        {/* Chart Section */}
+        <div className={`my-4 w-100 ${showChart ? "" : "hidden"}`}>
+          <MyChart />
         </div>
-        <div className="issue-holder">
-            <div className="box box1">
-              <p>lorem</p>
-            </div>
-            <div className="box box1">
-              <p>lorem</p>
-            </div>
-            <div className="box box1">
-              <p>lorem</p>
-            </div>
-            <div className="box box1">
-              <p>lorem</p>
-            </div>
+
+        {/* Issues Section */}
+        <div className={`issue-holder ${showChart ? "" : "show"}`}>
+          <div className="box box1">
+            <p>lorem</p>
+          </div>
+          <div className="box box1">
+            <p>lorem</p>
+          </div>
+          <div className="box box1">
+            <p>lorem</p>
+          </div>
+          <div className="box box1">
+            <p>lorem</p>
+          </div>
         </div>
-        {/* Put your main dashboard content here */}
+
+
+        {/* Pending Section */}
       </main>
+
+
     </div>
   );
 }

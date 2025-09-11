@@ -142,5 +142,53 @@
     }
   }
 
-  /* .my-4{
-    display: block ; }*/
+  .my-4 {
+  margin: 1rem 0;
+  width: 100%;          /* ensure full width inside main */
+  flex: 1 1 auto;       /* allow it to grow/shrink properly */
+  display: block;
+}
+
+.my-4 > * {
+  width: 100% !important;  /* force chart itself to fill */
+  height: auto;
+}
+
+
+
+
+/* Issue holder styles */
+.issue-holder {
+  margin: 20px;
+  display: none;              /* hidden by default */
+  flex-direction: row;     /* stacked vertically */
+  gap: 15px;
+  height: 75%;
+  justify-content: space-around;
+  text-align: center;
+  width: 95%;
+
+  padding: 20px;
+}
+
+.box {
+  padding: 15px;
+  background: #2a2f3a;
+  border-radius: 8px;
+  cursor: pointer;
+  width: 15%;
+  transition: background 0.2s ease;
+}
+
+.box:hover {
+  background: #3a3f4a;
+}
+
+/* Utility classes for display control */
+.show {
+  display: flex !important;   /* show issue-holder */
+}
+
+.hidden {
+  display: none !important;   /* hide chart */
+}
