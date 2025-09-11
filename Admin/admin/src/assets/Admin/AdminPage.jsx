@@ -121,12 +121,43 @@ export default function Dashboard() {
           <MyChart />
         </div>
 
-        <div className={`issue-holder ${showChart ? "" : "show"}`}>
-          <div className="box box1"><p>lorem</p></div>
-          <div className="box box1"><p>lorem</p></div>
-          <div className="box box1"><p>lorem</p></div>
-          <div className="box box1"><p>lorem</p></div>
+        <div className="kanban-board">
+      {/* Column 1 - Open */}
+      <div className="kanban-column">
+        <h2>Open</h2>
+        <div className="kanban-card high">
+          <h3>Pothole near bus stop</h3>
+          <p>Large pothole causing traffic issues.</p>
+          <span className="meta">Priority: High</span>
         </div>
+        <div className="kanban-card medium">
+          <h3>Streetlight not working</h3>
+          <p>Streetlight is off near main junction.</p>
+          <span className="meta">Priority: Medium</span>
+        </div>
+      </div>
+
+      {/* Column 2 - In Progress */}
+      <div className="kanban-column">
+        <h2>In Progress</h2>
+        <div className="kanban-card low">
+          <h3>Garbage collection delay</h3>
+          <p>Garbage not collected in sector 12.</p>
+          <span className="meta">Priority: Low</span>
+        </div>
+      </div>
+
+      {/* Column 3 - Resolved */}
+      <div className="kanban-column">
+        <h2>Resolved</h2>
+        <div className="kanban-card medium">
+          <h3>Broken water pipe</h3>
+          <p>Water pipe fixed near market area.</p>
+          <span className="meta">Priority: Medium</span>
+        </div>
+      </div>
+    </div>
+    
       </main>
     </div>
   );

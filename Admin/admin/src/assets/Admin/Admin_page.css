@@ -192,3 +192,67 @@
 .hidden {
   display: none !important;   /* hide chart */
 }
+
+
+.kanban-board {
+  display: flex;
+  gap: 20px;
+  padding: 20px;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  font-family: 'Segoe UI', Arial, sans-serif;
+}
+
+.kanban-column {
+  flex: 1;
+  background: var(--column-bg);
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.kanban-column h2 {
+  text-align: center;
+  margin-bottom: 10px;
+  font-size: 1.2rem;
+  color: var(--text);
+}
+
+.kanban-card {
+  background: var(--card-bg);
+  border-radius: 10px;
+  padding: 12px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+}
+
+.kanban-card h3 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: bold;
+}
+
+.kanban-card p {
+  font-size: 0.9rem;
+  margin: 6px 0;
+}
+
+.kanban-card .meta {
+  font-size: 0.8rem;
+  opacity: 0.8;
+}
+
+/* Priority colors */
+.kanban-card.low {
+  border-left: 5px solid var(--low);
+}
+
+.kanban-card.medium {
+  border-left: 5px solid var(--medium);
+}
+
+.kanban-card.high {
+  border-left: 5px solid var(--high);
+}
