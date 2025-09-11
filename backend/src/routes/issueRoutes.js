@@ -16,7 +16,7 @@ router.post(
 );
 router.get("/myissues", FirebaseAuthMiddleware.verifySessionCookie, getIssuesByUserId);
 router.delete(
-  "/:id",
+  "/myissues/:id",
   FirebaseAuthMiddleware.verifySessionCookie,
   deleteIssue
 );

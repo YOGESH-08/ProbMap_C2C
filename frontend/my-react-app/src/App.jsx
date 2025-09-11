@@ -22,37 +22,6 @@ function Home1() {
   );
 }
 
-function History() {
-  const sampleDetails = {
-    name: "City Sports Arena",
-    location: "Coimbatore, India",
-    rating: 4.5,
-    description:
-      "A modern sports arena with facilities for football, basketball, and indoor games. Spacious and well-maintained grounds with professional coaches.",
-    pricePerHour: 500,
-    sports: ["Football", "Basketball", "Tennis"],
-    openTime: "6:00 AM",
-    closeTime: "10:00 PM",
-  };
-
-  return <Acard details={sampleDetails} />;
-}
-function Pending(){
-  const sampleDetails1 = {
-    name: "City Sports Arena",
-    location: "Coimbatore, India",
-    rating: 4.5,
-    description:
-      "A modern sports arena with facilities for football, basketball, and indoor games. Spacious and well-maintained grounds with professional coaches.",
-    pricePerHour: 500,
-    sports: ["Football", "Basketball", "Tennis"],
-    openTime: "6:00 AM",
-    closeTime: "10:00 PM",
-  };
-  return(
-    <Acard details={sampleDetails1} />
-  );
-}
 function App() {
   const [user, setUser] = useState(null);
 

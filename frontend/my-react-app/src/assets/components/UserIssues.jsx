@@ -41,7 +41,7 @@ const UserIssues = ({ filterStatus }) => {
   const deleteIssue = async (id) => {
     if (!window.confirm("Are you sure you want to delete this issue?")) return;
     try {
-      const res = await fetch(`http://localhost:5000/issue/${id}`, {
+      const res = await fetch(`http://localhost:5000/issue/myissues/${id}`, {
         method: "DELETE",
         credentials: "include",
       });
