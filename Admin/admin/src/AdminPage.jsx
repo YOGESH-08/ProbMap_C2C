@@ -3,6 +3,7 @@ import { signOut } from "firebase/auth";
 import { auth } from "../../components/firebase/firebaseConfig.js";
 import { useNavigate } from "react-router-dom";
 
+
 export default function AdminPage() {
   const navigate = useNavigate();
 

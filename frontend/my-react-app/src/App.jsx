@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Navbar from "./assets/components/Navbar";
 import Upload from "./assets/components/Upload";
 import Slider from "./assets/components/Slider";
+
 import Home from "./assets/components/Home";
 import Why from "./assets/components/Why";
 import Acard from "./assets/components/Acard";
@@ -50,7 +51,6 @@ function App() {
 
   return (
     <>
-      {showPopup && <Popup onClose={handleClosePopup} />}
       <Router>
         <Navbar />
         <Routes>
@@ -63,6 +63,4 @@ function App() {
     </>
   );
 }
-
-import Popup from "./popup";
 export default App;
