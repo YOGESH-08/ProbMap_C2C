@@ -2,7 +2,7 @@ import { useState } from 'react'
 import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
 import './App.css'
-import AdminPage from "../../../frontend/my-react-app/src/assets/Admin/AdminPage"
+import AdminPage from "./assets/Admin/AdminPage"
 function App() {
   const [count, setCount] = useState(0)
 
