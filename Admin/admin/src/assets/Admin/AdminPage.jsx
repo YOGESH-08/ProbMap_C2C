@@ -26,9 +26,9 @@ export default function Dashboard() {
         return (
           <div className="dashboard-content">
             <MyChart />
-            </div>
+          </div>
         );
-      case "issues":
+        case "issues":
         return (
           <div className="issues-content">
             <h2>Reported Issues</h2>
@@ -54,7 +54,7 @@ export default function Dashboard() {
             </div>
           </div>
         );
-      case "pending":
+        case "pending":
         return (
           <div className="pending-content">
             <h2>Pending Approvals</h2>
@@ -80,7 +80,7 @@ export default function Dashboard() {
             </div>
           </div>
         );
-      case "public":
+        case "public":
         return (
           <div className="public-content">
             <div className="content-header">
@@ -121,16 +121,16 @@ export default function Dashboard() {
                   </div>
                   <h4>Available Rewards</h4>
                   <div className="reward-item">
-                    <div className="reward-name">Amazon Voucher</div><br/>
-                    <div className="reward-points">1000 pts</div><br/>
+                    <div className="reward-name">Amazon Voucher</div>
+                    <div className="reward-points">1000 pts</div>
                   </div>
                   <div className="reward-item">
-                    <div className="reward-name">Movie Tickets</div><br/>
-                    <div className="reward-points">750 pts</div><br/>
+                    <div className="reward-name">Movie Tickets</div>
+                    <div className="reward-points">750 pts</div>
                   </div>
                   <div className="reward-item">
-                    <div className="reward-name">Coffee Shop Coupon</div><br/>
-                    <div className="reward-points">500 pts</div><br/>
+                    <div className="reward-name">Coffee Shop Coupon</div>
+                    <div className="reward-points">500 pts</div>
                   </div>
                 </div>
               </div>
@@ -147,30 +147,30 @@ export default function Dashboard() {
                 </div>
                 <div className="table-row">
                   <span className="user">
-                    <img src={Img} alt="User" className="img1"/>
+                    <img src={Img} className="img1" alt="User" />
                     Neha Singh
                   </span>
-                  <span className="type">Issue Reported</span><br/>
-                  <span className="date">12 Oct 2023</span><br/>
-                  <span className="points">+50</span><br/>
+                  <span className="type">Issue Reported</span>
+                  <span className="date">12 Oct 2023</span>
+                  <span className="points">+50</span>
                 </div>
                 <div className="table-row">
                   <span className="user">
-                    <img src={Img} alt="User" className="img1" />
+                    <img src={Img}  className="img1" alt="User" />
                     Vikram Mehta
                   </span>
-                  <span className="type">Issue Resolved</span><br/>
-                  <span className="date">11 Oct 2023</span><br/>
-                  <span className="points">+100</span><br/>
+                  <span className="type">Issue Resolved</span>
+                  <span className="date">11 Oct 2023</span>
+                  <span className="points">+100</span>
                 </div>
                 <div className="table-row">
                   <span className="user">
-                    <img src={Img} alt="User" className="img1"/>
+                    <img src={Img} className="img1" alt="User" />
                     Anjali Desai
                   </span>
-                  <span className="type">Verified Report</span><br/>
-                  <span className="date">10 Oct 2023</span><br/>
-                  <span className="points">+25</span><br/>
+                  <span className="type">Verified Report</span>
+                  <span className="date">10 Oct 2023</span>
+                  <span className="points">+25</span>
                 </div>
               </div>
             </div>
@@ -294,6 +294,423 @@ export default function Dashboard() {
             </div>
           </div>
         );
+      case "integrations":
+        return (
+          <div className="integrations-content">
+            <div className="content-header">
+              <h2>Integrations</h2>
+              <p>Connect with third-party services and APIs</p>
+            </div>
+            
+            <div className="integrations-grid">
+              <div className="integration-card">
+                <div className="integration-header">
+                  <div className="integration-icon">
+                    <i className="fa-brands fa-google"></i>
+                  </div>
+                  <div className="integration-status">
+                    <span className="status-badge connected">Connected</span>
+                  </div>
+                </div>
+                <h3>Google Maps API</h3>
+                <p>Access to mapping services and location data</p>
+                <div className="integration-meta">
+                  <span className="meta-item">
+                    <i className="fa-solid fa-database"></i>
+                    Location Services
+                  </span>
+                  <span className="meta-item">
+                    <i className="fa-solid fa-shield-alt"></i>
+                    OAuth 2.0
+                  </span>
+                </div>
+                <div className="integration-actions">
+                  <button className="btn-secondary">Configure</button>
+                  <button className="btn-primary">Manage</button>
+                </div>
+              </div>
+              
+              <div className="integration-card">
+                <div className="integration-header">
+                  <div className="integration-icon">
+                    <i className="fa-brands fa-twitter"></i>
+                  </div>
+                  <div className="integration-status">
+                    <span className="status-badge disconnected">Disconnected</span>
+                  </div>
+                </div>
+                <h3>Twitter API</h3>
+                <p>Share reports and engage with the community</p>
+                <div className="integration-meta">
+                  <span className="meta-item">
+                    <i className="fa-solid fa-share-nodes"></i>
+                    Social Media
+                  </span>
+                  <span className="meta-item">
+                    <i className="fa-solid fa-shield-alt"></i>
+                    OAuth 1.0a
+                  </span>
+                </div>
+                <div className="integration-actions">
+                  <button className="btn-secondary">Configure</button>
+                  <button className="btn-connect">Connect</button>
+                </div>
+              </div>
+              
+              <div className="integration-card">
+                <div className="integration-header">
+                  <div className="integration-icon">
+                    <i className="fa-solid fa-envelope"></i>
+                  </div>
+                  <div className="integration-status">
+                    <span className="status-badge connected">Connected</span>
+                  </div>
+                </div>
+                <h3>Email Service</h3>
+                <p>Send notifications and alerts via email</p>
+                <div className="integration-meta">
+                  <span className="meta-item">
+                    <i className="fa-solid fa-bell"></i>
+                    Notifications
+                  </span>
+                  <span className="meta-item">
+                    <i className="fa-solid fa-shield-alt"></i>
+                    SMTP
+                  </span>
+                </div>
+                <div className="integration-actions">
+                  <button className="btn-secondary">Configure</button>
+                  <button className="btn-primary">Manage</button>
+                </div>
+              </div>
+              
+              <div className="integration-card">
+                <div className="integration-header">
+                  <div className="integration-icon">
+                    <i className="fa-brands fa-aws"></i>
+                  </div>
+                  <div className="integration-status">
+                    <span className="status-badge pending">Pending</span>
+                  </div>
+                </div>
+                <h3>AWS S3 Storage</h3>
+                <p>Store and manage images and documents</p>
+                <div className="integration-meta">
+                  <span className="meta-item">
+                    <i className="fa-solid fa-cloud"></i>
+                    Cloud Storage
+                  </span>
+                  <span className="meta-item">
+                    <i className="fa-solid fa-shield-alt"></i>
+                    IAM
+                  </span>
+                </div>
+                <div className="integration-actions">
+                  <button className="btn-secondary">Configure</button>
+                  <button className="btn-connect">Complete Setup</button>
+                </div>
+              </div>
+              
+              <div className="integration-card">
+                <div className="integration-header">
+                  <div className="integration-icon">
+                    <i className="fa-brands fa-stripe"></i>
+                  </div>
+                  <div className="integration-status">
+                    <span className="status-badge disconnected">Disconnected</span>
+                  </div>
+                </div>
+                <h3>Stripe Payments</h3>
+                <p>Process payments for premium features</p>
+                <div className="integration-meta">
+                  <span className="meta-item">
+                    <i className="fa-solid fa-credit-card"></i>
+                    Payments
+                  </span>
+                  <span className="meta-item">
+                    <i className="fa-solid fa-shield-alt"></i>
+                    PCI DSS
+                  </span>
+                </div>
+                <div className="integration-actions">
+                  <button className="btn-secondary">Configure</button>
+                  <button className="btn-connect">Connect</button>
+                </div>
+              </div>
+              
+              <div className="integration-card">
+                <div className="integration-header">
+                  <div className="integration-icon">
+                    <i className="fa-solid fa-sliders"></i>
+                  </div>
+                  <div className="integration-status">
+                    <span className="status-badge available">Available</span>
+                  </div>
+                </div>
+                <h3>Add New Integration</h3>
+                <p>Browse our marketplace for more integrations</p>
+                <div className="integration-actions">
+                  <button className="btn-primary">Explore</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      case "monthly":
+        return (
+          <div className="monthly-content">
+            <div className="content-header">
+              <h2>Monthly Reports</h2>
+              <p>Comprehensive analysis of monthly performance metrics</p>
+            </div>
+            
+            <div className="reports-overview">
+              <div className="overview-card">
+                <div className="overview-icon">
+                  <i className="fa-solid fa-bug"></i>
+                </div>
+                <div className="overview-details">
+                  <h3>1,247</h3>
+                  <p>Total Issues Reported</p>
+                </div>
+                <div className="overview-trend up">
+                  <i className="fa-solid fa-arrow-up"></i>
+                  <span>12%</span>
+                </div>
+              </div>
+              
+              <div className="overview-card">
+                <div className="overview-icon">
+                  <i className="fa-solid fa-check-circle"></i>
+                </div>
+                <div className="overview-details">
+                  <h3>894</h3>
+                  <p>Issues Resolved</p>
+                </div>
+                <div className="overview-trend up">
+                  <i className="fa-solid fa-arrow-up"></i>
+                  <span>8%</span>
+                </div>
+              </div>
+              
+              <div className="overview-card">
+                <div className="overview-icon">
+                  <i className="fa-solid fa-clock"></i>
+                </div>
+                <div className="overview-details">
+                  <h3>353</h3>
+                  <p>Pending Issues</p>
+                </div>
+                <div className="overview-trend down">
+                  <i className="fa-solid fa-arrow-down"></i>
+                  <span>5%</span>
+                </div>
+              </div>
+              
+              <div className="overview-card">
+                <div className="overview-icon">
+                  <i className="fa-solid fa-users"></i>
+                </div>
+                <div className="overview-details">
+                  <h3>562</h3>
+                  <p>Active Users</p>
+                </div>
+                <div className="overview-trend up">
+                  <i className="fa-solid fa-arrow-up"></i>
+                  <span>15%</span>
+                </div>
+              </div>
+            </div>
+            
+            <div className="monthly-reports">
+              <div className="reports-header">
+                <h3>Monthly Reports Archive</h3>
+                <div className="time-filter">
+                  <select>
+                    <option>All Time</option>
+                    <option>2023</option>
+                    <option>2022</option>
+                    <option>2021</option>
+                  </select>
+                </div>
+              </div>
+              
+              <div className="reports-list">
+                <div className="monthly-report-item">
+                  <div className="report-date">
+                    <span className="month">September</span>
+                    <span className="year">2023</span>
+                  </div>
+                  <div className="report-info">
+                    <h4>September 2023 Performance Report</h4>
+                    <div className="report-stats">
+                      <span className="stat">
+                        <i className="fa-solid fa-bug"></i>
+                        324 issues
+                      </span>
+                      <span className="stat">
+                        <i className="fa-solid fa-check"></i>
+                        72% resolved
+                      </span>
+                      <span className="stat">
+                        <i className="fa-solid fa-user"></i>
+                        128 new users
+                      </span>
+                    </div>
+                  </div>
+                  <div className="report-actions">
+                    <button className="action-btn view">
+                      <i className="fa-solid fa-eye"></i>
+                    </button>
+                    <button className="action-btn download">
+                      <i className="fa-solid fa-download"></i>
+                    </button>
+                    <button className="action-btn share">
+                      <i className="fa-solid fa-share-nodes"></i>
+                    </button>
+                  </div>
+                </div>
+                
+                <div className="monthly-report-item">
+                  <div className="report-date">
+                    <span className="month">August</span>
+                    <span className="year">2023</span>
+                  </div>
+                  <div className="report-info">
+                    <h4>August 2023 Performance Report</h4>
+                    <div className="report-stats">
+                      <span className="stat">
+                        <i className="fa-solid fa-bug"></i>
+                        298 issues
+                      </span>
+                      <span className="stat">
+                        <i className="fa-solid fa-check"></i>
+                        68% resolved
+                      </span>
+                      <span className="stat">
+                        <i className="fa-solid fa-user"></i>
+                        94 new users
+                      </span>
+                    </div>
+                  </div>
+                  <div className="report-actions">
+                    <button className="action-btn view">
+                      <i className="fa-solid fa-eye"></i>
+                    </button>
+                    <button className="action-btn download">
+                      <i className="fa-solid fa-download"></i>
+                    </button>
+                    <button className="action-btn share">
+                      <i className="fa-solid fa-share-nodes"></i>
+                    </button>
+                  </div>
+                </div>
+                
+                <div className="monthly-report-item">
+                  <div className="report-date">
+                    <span className="month">July</span>
+                    <span className="year">2023</span>
+                  </div>
+                  <div className="report-info">
+                    <h4>July 2023 Performance Report</h4>
+                    <div className="report-stats">
+                      <span className="stat">
+                        <i className="fa-solid fa-bug"></i>
+                        275 issues
+                      </span>
+                      <span className="stat">
+                        <i className="fa-solid fa-check"></i>
+                        65% resolved
+                      </span>
+                      <span className="stat">
+                        <i className="fa-solid fa-user"></i>
+                        87 new users
+                      </span>
+                    </div>
+                  </div>
+                  <div className="report-actions">
+                    <button className="action-btn view">
+                      <i className="fa-solid fa-eye"></i>
+                    </button>
+                    <button className="action-btn download">
+                      <i className="fa-solid fa-download"></i>
+                    </button>
+                    <button className="action-btn share">
+                      <i className="fa-solid fa-share-nodes"></i>
+                    </button>
+                  </div>
+                </div>
+                
+                <div className="monthly-report-item">
+                  <div className="report-date">
+                    <span className="month">June</span>
+                    <span className="year">2023</span>
+                  </div>
+                  <div className="report-info">
+                    <h4>Q2 2023 Summary Report</h4>
+                    <div className="report-stats">
+                      <span className="stat">
+                        <i className="fa-solid fa-bug"></i>
+                        842 issues
+                      </span>
+                      <span className="stat">
+                        <i className="fa-solid fa-check"></i>
+                        68% resolved
+                      </span>
+                      <span className="stat">
+                        <i className="fa-solid fa-user"></i>
+                        289 new users
+                      </span>
+                    </div>
+                  </div>
+                  <div className="report-actions">
+                    <button className="action-btn view">
+                      <i className="fa-solid fa-eye"></i>
+                    </button>
+                    <button className="action-btn download">
+                      <i className="fa-solid fa-download"></i>
+                    </button>
+                    <button className="action-btn share">
+                      <i className="fa-solid fa-share-nodes"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div className="report-generation">
+              <h3>Generate New Report</h3>
+              <div className="generation-options">
+                <div className="generation-card">
+                  <div className="generation-icon">
+                    <i className="fa-solid fa-calendar"></i>
+                  </div>
+                  <h4>Monthly Report</h4>
+                  <p>Generate a comprehensive monthly performance report</p>
+                  <button className="btn-generate">Generate</button>
+                </div>
+                
+                <div className="generation-card">
+                  <div className="generation-icon">
+                    <i className="fa-solid fa-chart-pie"></i>
+                  </div>
+                  <h4>Custom Report</h4>
+                  <p>Create a custom report with specific metrics and time range</p>
+                  <button className="btn-generate">Create</button>
+                </div>
+                
+                <div className="generation-card">
+                  <div className="generation-icon">
+                    <i className="fa-solid fa-download"></i>
+                  </div>
+                  <h4>Export Data</h4>
+                  <p>Export raw data for analysis in external tools</p>
+                  <button className="btn-generate">Export</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
       default:
         return (
           <div className="dashboard-content">
@@ -358,39 +775,21 @@ export default function Dashboard() {
               </a>
             </li>
             <li>
-              <a className="nav-link" href="#">
+              <a 
+                className={`nav-link ${activeView === "integrations" ? "active" : ""}`}
+                onClick={() => setActiveView("integrations")}
+              >
                 <i className="fa-solid fa-plug"></i>
                 <span>Integrations</span>
               </a>
             </li>
-          </ul>
-
-          <div className="section-title">
-            SAVED REPORTS <i className="fa-solid fa-plus add-report"></i>
-          </div>
-          <ul>
             <li>
-              <a className="nav-link" href="#">
-                <i className="fa-regular fa-calendar"></i>
-                <span>Current month</span>
-              </a>
-            </li>
-            <li>
-              <a className="nav-link" href="#">
-                <i className="fa-regular fa-calendar"></i>
-                <span>Last quarter</span>
-              </a>
-            </li>
-            <li>
-              <a className="nav-link" href="#">
-                <i className="fa-regular fa-thumbs-up"></i>
-                <span>Social engagement</span>
-              </a>
-            </li>
-            <li>
-              <a className="nav-link" href="#">
-                <i className="fa-regular fa-calendar-check"></i>
-                <span>Year-end sale</span>
+              <a 
+                className={`nav-link ${activeView === "monthly" ? "active" : ""}`}
+                onClick={() => setActiveView("monthly")}
+              >
+                <i className="fa-solid fa-chart-column"></i>
+                <span>Monthly Reports</span>
               </a>
             </li>
           </ul>
