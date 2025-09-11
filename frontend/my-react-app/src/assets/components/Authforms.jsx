@@ -50,49 +50,68 @@ export default function AuthForms() {
     setErrors((prev) => ({ ...prev, [id]: msg }));
   };
 
-  const handleSubmit = async (e, type) => {
-    e.preventDefault();
-    let valid = true;
-    let newErrors = {};
+ const handleSubmit = async (e, type) => {
+  e.preventDefault();
+  let valid = true;
+  let newErrors = {};
 
-    const ids =
-      type === "login"
-        ? ["loginEmail", "loginPassword"]
-        : ["regUsername", "regMobile", "regEmail", "regPassword"];
+  const ids =
+    type === "login"
+      ? ["loginEmail", "loginPassword"]
+      : ["regUsername", "regMobile", "regEmail", "regPassword"];
 
-    ids.forEach((id) => {
-      const msg = validateInput(id, formData[id]);
-      if (msg) valid = false;
-      newErrors[id] = msg;
-    });
+  ids.forEach((id) => {
+    const msg = validateInput(id, formData[id]);
+    if (msg) valid = false;
+    newErrors[id] = msg;
+  });
 
-    setErrors(newErrors);
-    if (!valid) return;
+  setErrors(newErrors);
+  if (!valid) return;
 
-    try {
-      if (type === "login") {
-        const userCred = await signInWithEmailAndPassword(
-          auth,
-          formData.loginEmail,
-          formData.loginPassword
-        );
-        console.log(" Logged in:", userCred.user);
-        alert("Login successful!");
-      } else {
+  try {
+    if (type === "login") {
+      // 1️⃣ Sign in with Firebase Client SDK
+      const userCred = await signInWithEmailAndPassword(
+        auth,
+        formData.loginEmail,
+        formData.loginPassword
+      );
 
-        const userCred = await createUserWithEmailAndPassword(
-          auth,
-          formData.regEmail,
-          formData.regPassword
-        );
-        console.log("Registered:", userCred.user);
-        alert("Registration successful!");
-      }
-    } catch (err) {
-      console.error(" Auth Error:", err);
-      alert(err.message);
+      const idToken = await userCred.user.getIdToken();
+
+      const res = await fetch("http://localhost:5000/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include", 
+        body: JSON.stringify({
+          idToken,
+          fullName: userCred.user.displayName || formData.regUsername,
+          phone: formData.regMobile,
+          isAdmin: false,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Backend login failed");
+
+      console.log("Backend login success:", data);
+      alert("Login successful!");
+    } else {
+      const userCred = await createUserWithEmailAndPassword(
+        auth,
+        formData.regEmail,
+        formData.regPassword
+      );
+
+      console.log("Registered:", userCred.user);
+      alert("Registration successful!");
     }
-  };
+  } catch (err) {
+    console.error("Auth Error:", err);
+    alert(err.message);
+  }
+};
 
   return (
     <div className={`wrapper ${isRegister ? "active" : ""} black-white-theme`}>

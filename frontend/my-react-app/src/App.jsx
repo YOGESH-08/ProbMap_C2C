@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Navbar from "./assets/components/Navbar";
 import Upload from "./assets/components/Upload";
@@ -6,18 +6,16 @@ import Slider from "./assets/components/Slider";
 import Home from "./assets/components/Home";
 import Why from "./assets/components/Why";
 import Acard from "./assets/components/Acard";
-// import AdminPage from "./assets/Admin/AdminPage";
 import AuthForms from "./assets/components/Authforms";
-
-
+import { auth } from "../src/assets/components/firebase/firebase"; 
+import { onAuthStateChanged } from "firebase/auth";
 
 function Home1() {
   return (
     <>
-    <Slider/>
-    <Home/>
-    <Why/>
-
+      <Slider />
+      <Home />
+      <Why />
     </>
   );
 }
@@ -34,24 +32,33 @@ function History() {
     openTime: "6:00 AM",
     closeTime: "10:00 PM",
   };
-  return(
-    <>
-    <Acard details={sampleDetails} />
-    </>
-  );
+
+  return <Acard details={sampleDetails} />;
 }
 
-function App(){
+function App() {
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+    });
+    return () => unsubscribe(); 
+  }, []);
+
+  if (!user) {
+    return <AuthForms />;
+  }
+
   return (
-    <AuthForms/>
-    // <Router>
-    //   <Navbar />
-    //   <Routes>
-    //     <Route path="/" element={<Home1 />} />
-    //     <Route path="/report" element={<Upload />} />
-    //     <Route path="/history" element={<History />} />
-    //   </Routes>
-    // </Router>
+    <Router>
+      <Navbar />
+      <Routes>
+        <Route path="/" element={<Home1 />} />
+        <Route path="/report" element={<Upload />} />
+        <Route path="/history" element={<History />} />
+      </Routes>
+    </Router>
   );
 }
 
