@@ -1,214 +1,175 @@
-:root {
-  --bg-dark: #0f111a;
-  --bg-glass: rgba(255, 255, 255, 0.05);
-  --bg-glass-hover: rgba(255, 255, 255, 0.12);
-  --accent: #4cc9f0;
-  --accent-hover: #4895ef;
-  --danger: #ef476f;
-  --danger-hover: #d90429;
-  --text: #fff;
-  --muted: #a0a0a0;
-  --radius: 14px;
-  --shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-  --transition: all 0.3s ease;
-  --font: 'Segoe UI', Arial, sans-serif;
-}
-
-body {
-  font-family: var(--font);
-  background: var(--bg-dark);
-  color: var(--text);
-  margin: 0;
-  padding: 0;
-}
-
-/* Container */
-.dashboard-dark-container {
-  min-height: 100vh;
-  width: 100vw;
-  background: linear-gradient(135deg, #181c24 0%, #232946 100%);
-  color: #fff;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
-  padding: 0;
-  margin: 0;
+/* General Reset */
+* {
   box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-.dashboard-dark-container h2 {
-  margin-top: 40px;
-  font-size: 2.5rem;
-  font-weight: 700;
-  letter-spacing: 2px;
-  color: #f4d35e;
-  text-shadow: 0 2px 8px #000a;
-}
-
-/* Form */
-.form-create-admin {
-  background: #232946;
-  border-radius: 18px;
-  box-shadow: 0 4px 24px #0005;
-  padding: 32px 32px 24px 32px;
-  margin: 32px 0 24px 0;
+/* Login Page */
+.login-container {
   display: flex;
   flex-direction: column;
-  gap: 18px;
-  width: 600px;
-  max-width: 98vw;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background: #1f2937;
+  color: #fff;
 }
 
-.form-input-row {
+.login-form {
   display: flex;
-  gap: 14px;
-  width: 100%;
+  flex-direction: column;
+  gap: 15px;
+  background: #374151;
+  padding: 30px;
+  border-radius: 10px;
+  width: 300px;
 }
 
-.form-create-admin input {
-  background: #181c24;
-  border: 1.5px solid #393e4c;
-  border-radius: 8px;
-  color: #fff;
-  padding: 12px 14px;
-  font-size: 1rem;
-  outline: none;
-  transition: border 0.2s;
-  flex: 1;
-}
-
-.form-create-admin input:focus {
-  border: 1.5px solid #6c7a89;
-}
-
-.form-create-admin button {
-  background: #393e4c;
-  color: #fff;
+.login-form input {
+  padding: 10px;
+  border-radius: 5px;
   border: none;
-  border-radius: 8px;
-  padding: 12px 0;
-  font-size: 1.1rem;
-  font-weight: 600;
+  outline: none;
+}
+
+.login-form button {
+  padding: 10px;
+  border-radius: 5px;
+  border: none;
+  background: #3b82f6;
+  color: white;
   cursor: pointer;
-  transition: background 0.2s, color 0.2s;
-  margin-top: 8px;
+  transition: 0.2s;
 }
 
-.form-create-admin button:hover {
-  background: #232946;
-  color: #f4d35e;
+.login-form button:hover {
+  background: #2563eb;
 }
 
-/* Error */
 .error-message {
-  color: var(--danger);
-  font-size: 0.95rem;
-  margin-bottom: 20px;
+  color: #f87171;
+  margin-top: 10px;
   text-align: center;
 }
 
-/* City Filter */
+/* Dashboard */
+.dashboard-container {
+  padding: 20px;
+  min-height: 100vh;
+  background: #111827;
+  color: #f9fafb;
+}
+
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.logout-btn {
+  padding: 8px 15px;
+  border-radius: 5px;
+  background: #ef4444;
+  border: none;
+  color: white;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.logout-btn:hover {
+  background: #b91c1c;
+}
+
+/* Create Admin Form */
+.form-create-admin {
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.form-create-admin input {
+  padding: 10px;
+  border-radius: 5px;
+  border: none;
+  outline: none;
+}
+
+.form-create-admin button {
+  padding: 10px 20px;
+  border-radius: 5px;
+  border: none;
+  background: #10b981;
+  color: white;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.form-create-admin button:hover {
+  background: #059669;
+}
+
+/* City Filter Buttons */
 .city-nav {
   display: flex;
-  gap: 18px;
-  margin-bottom: 32px;
+  gap: 10px;
+  margin-bottom: 20px;
 }
 
 .city-nav button {
-  background: #232946;
-  color: #f4d35e;
-  border: 1.5px solid #f4d35e;
-  border-radius: 8px;
-  padding: 10px 24px;
-  font-size: 1rem;
-  font-weight: 500;
+  padding: 8px 15px;
+  border-radius: 5px;
+  border: none;
+  background: #6b7280;
+  color: white;
   cursor: pointer;
-  transition: background 0.2s, color 0.2s, border 0.2s;
-  transition: var(--transition);
-  font-size: 0.95rem;
+  transition: 0.2s;
 }
 
 .city-nav button.active,
 .city-nav button:hover {
-  background: #f4d35e;
-  color: #232946;
-  border: 1.5px solid #ee964b;
+  background: #3b82f6;
 }
 
 /* Admin Cards */
 .admin-cards {
   display: flex;
   flex-wrap: wrap;
-  gap: 32px;
-  justify-content: center;
-  width: 100vw;
-  max-width: 1200px;
-  margin-bottom: 40px;
+  gap: 20px;
 }
 
 .admin-card {
-  background: #181c24;
-  border-radius: 16px;
-  box-shadow: 0 4px 24px #0005;
-  padding: 32px 28px 24px 28px;
-  min-width: 260px;
-  max-width: 320px;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 10px;
-  transition: transform 0.2s, box-shadow 0.2s;
-  border: 1.5px solid #393e4c;
+  background: #1f2937;
+  padding: 20px;
+  border-radius: 10px;
+  min-width: 220px;
+  flex: 1 1 200px;
+  transition: 0.2s;
 }
 
 .admin-card:hover {
-  transform: translateY(-8px) scale(1.03);
-  box-shadow: 0 8px 32px #0008;
-  border: 1.5px solid #232946;
+  transform: translateY(-3px);
+  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
 }
 
 .admin-card h3 {
-  margin: 0 0 6px 0;
-  font-size: 1.3rem;
-  color: #e6c96a;
-}
-
-.admin-card p {
-  margin: 0 0 4px 0;
-  color: #e0e0e0;
-  font-size: 1rem;
+  margin-bottom: 5px;
 }
 
 .delete-btn {
-  background: linear-gradient(90deg, #232946 0%, #393e4c 100%);
-  color: #e6c96a;
+  padding: 8px 12px;
+  border-radius: 5px;
   border: none;
-  border-radius: 8px;
-  padding: 10px 0;
-  font-size: 1rem;
-  font-weight: 600;
+  background: #ef4444;
+  color: white;
   cursor: pointer;
-  width: 100%;
+  transition: 0.2s;
   margin-top: 10px;
-  transition: background 0.2s, color 0.2s;
 }
 
 .delete-btn:hover {
-  background: linear-gradient(90deg, #393e4c 0%, #232946 100%);
-  color: #fff;
+  background: #b91c1c;
 }
-
-@media (max-width: 700px) {
-  .admin-cards {
-    flex-direction: column;
-    align-items: center;
-    gap: 20px;
-  }
-  .form-create-admin {
-    width: 95vw;
-    padding: 18px 6vw 18px 6vw;
-  }
-}
-  
