@@ -4,76 +4,56 @@ import User from "../models/userModel.js";
 const auth = admin.auth();
 
 class FirebaseAuthController {
-  login = async (req, res) => {
-    const {
-      fullName,
-      idToken,
-      phone,
-      isAdmin = false,
-    } = req.body;
+ login = async (req, res) => {
+  const { fullName, idToken, phone, isAdmin = false } = req.body;
 
-    if (!idToken) {
-      return res.status(400).json({ error: "JWT required" });
+  if (!idToken) {
+    return res.status(400).json({ error: "JWT required" });
+  }
+
+  try {
+    const expiresIn = 60 * 60 * 24 * 1000; // 1 day
+    const decoded = await auth.verifyIdToken(idToken, true);
+    const sessionCookie = await auth.createSessionCookie(idToken, { expiresIn });
+
+    const provider = decoded.firebase?.sign_in_provider;
+
+    let user = await User.findOne({ firebaseUID: decoded.uid });
+
+    if (!user) {
+      const Name = decoded.name || fullName || decoded.email.split("@")[0];
+      const formattedPhone = phone
+        ? phone.startsWith("+")
+          ? phone
+          : `+91${phone}`
+        : "+910000000000";
+
+      user = await User.create({
+        firebaseUID: decoded.uid,
+        email: decoded.email,
+        fullName: Name,
+        loginMethod: provider === "google.com" ? "google" : "email",
+        phone: formattedPhone,
+        isAdmin,
+        addresses: [],
+      });
     }
 
-    try {
-      const expiresIn = 60 * 60 * 24 * 1000; // 1 day
-      const decoded = await auth.verifyIdToken(idToken, true);
-      const sessionCookie = await auth.createSessionCookie(idToken, {
-        expiresIn,
-      });
+    res.cookie("session", sessionCookie, {
+      maxAge: expiresIn,
+      httpOnly: true,
+      secure: true,
+      sameSite: "strict",
+    });
+    res.cookie("session_exists", true, { secure: true });
 
-      const provider = decoded.firebase?.sign_in_provider;
+    return res.status(200).json({ message: "User login/register successful", user });
+  } catch (error) {
+    console.error("User login failed:", error);
+    return res.status(401).json({ error: "Failed to login/register user" });
+  }
+};
 
-      let user = await User.findOne({ firebaseUID: decoded.uid });
-
-      if (!user) {
-        const Name = decoded.name || fullName;
-        if (!Name) {
-          return res
-            .status(400)
-            .json({ error: "Full name is required for new user." });
-        }
-
-        if (!phone) {
-          return res
-            .status(400)
-            .json({ error: "Phone number is required for new user." });
-        }
-
-        const globalPhoneRegex = /^\+[1-9]\d{1,14}$/;
-        if (!globalPhoneRegex.test(phone)) {
-          return res.status(400).json({
-            error:
-              "Invalid phone number. Use E.164 format, e.g., +14155552671",
-          });
-        }
-
-        user = await User.create({
-          firebaseUID: decoded.uid,
-          email: decoded.email,
-          fullName: Name,
-          loginMethod: provider === "google.com" ? "google" : "email",
-          phone: phone,
-          isAdmin: isAdmin,
-          addresses: [],
-        });
-      }
-
-      res.cookie("session", sessionCookie, {
-        maxAge: expiresIn,
-        httpOnly: true,
-        secure: true,
-        sameSite: "strict",
-      });
-      res.cookie("session_exists", true, { secure: true });
-
-      return res.status(200).json({ message: "User login successful", user });
-    } catch (error) {
-      console.error("User login failed:", error);
-      return res.status(401).json({ error: "Failed to login user" });
-    }
-  };
 
   logout = async (req, res) => {
     try {

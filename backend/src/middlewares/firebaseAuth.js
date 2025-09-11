@@ -1,5 +1,5 @@
 import admin from "../firebase/firebaseConfig.js";
-import { User } from "../models/userModel.js";
+import User from "../models/userModel.js";
 
 class FirebaseAuthMiddleware {
   verifySessionCookie = async (req, res, next) => {

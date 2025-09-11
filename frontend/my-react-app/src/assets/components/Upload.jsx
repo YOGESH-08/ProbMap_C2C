@@ -123,6 +123,7 @@ export default function Upload() {
       const res = await fetch("http://localhost:5000/issue", {
         method: "POST",
         body: data,
+        credentials:"include",
       });
 
       if (!res.ok) {

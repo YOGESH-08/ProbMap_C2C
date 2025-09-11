@@ -10,6 +10,7 @@ import AuthForms from "./assets/components/Authforms";
 import Footer from "./assets/components/Footer";
 import { auth } from "../src/assets/components/firebase/firebase"; 
 import { onAuthStateChanged } from "firebase/auth";
+import UserIssues from "./assets/components/UserIssues";
 
 function Home1() {
   return (
@@ -17,7 +18,6 @@ function Home1() {
     <Slider/>
     <Home/>
     <Why/>
-
     </>
   );
 }
@@ -75,7 +75,7 @@ function App() {
         <Route path="/" element={<Home1 />} />
         <Route path="/report" element={<Upload />} />
         <Route path="/pending" element={<Pending/>}/>
-        <Route path="/history" element={<History />} />
+        <Route path="/history" element={<UserIssues />} />
       </Routes>
     </Router>
   );

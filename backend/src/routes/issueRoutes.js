@@ -1,12 +1,24 @@
 import express from "express";
-import { createIssue, getIssues, getIssueById, updateIssueStatus } from "../controllers/issueController.js";
+import {
+  createIssue,
+  getIssuesByUserId,
+  deleteIssue,
+} from "../controllers/issueController.js";
 import upload from "../middlewares/upload.js";
-
+import FirebaseAuthMiddleware from "../middlewares/firebaseAuth.js"; 
 const router = express.Router();
 
-router.post("/", upload.single("image"),createIssue);
-router.get("/", getIssues);
-router.get("/:id", getIssueById);
-router.patch("/:id", updateIssueStatus);
+router.post(
+  "/",
+  FirebaseAuthMiddleware.verifySessionCookie,
+  upload.single("image"),
+  createIssue
+);
+router.get("/myissues", FirebaseAuthMiddleware.verifySessionCookie, getIssuesByUserId);
+router.delete(
+  "/:id",
+  FirebaseAuthMiddleware.verifySessionCookie,
+  deleteIssue
+);
 
 export default router;

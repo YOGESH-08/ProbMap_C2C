@@ -50,7 +50,7 @@ export default function AuthForms() {
     setErrors((prev) => ({ ...prev, [id]: msg }));
   };
 
- const handleSubmit = async (e, type) => {
+const handleSubmit = async (e, type) => {
   e.preventDefault();
   let valid = true;
   let newErrors = {};
@@ -71,7 +71,6 @@ export default function AuthForms() {
 
   try {
     if (type === "login") {
-      // 1️⃣ Sign in with Firebase Client SDK
       const userCred = await signInWithEmailAndPassword(
         auth,
         formData.loginEmail,
@@ -79,15 +78,22 @@ export default function AuthForms() {
       );
 
       const idToken = await userCred.user.getIdToken();
+      console.log("Sending request to backend...");
+console.log("Payload:", {
+  idToken,
+  fullName: formData.regUsername,
+  phone: formData.regMobile,
+  isAdmin: false,
+});
 
       const res = await fetch("http://localhost:5000/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        credentials: "include", 
+        credentials: "include",
         body: JSON.stringify({
           idToken,
-          fullName: userCred.user.displayName || formData.regUsername,
-          phone: formData.regMobile,
+          fullName: userCred.user.displayName || formData.loginEmail.split("@")[0],
+          phone: formData.regMobile || "0000000000", 
           isAdmin: false,
         }),
       });
@@ -104,7 +110,24 @@ export default function AuthForms() {
         formData.regPassword
       );
 
-      console.log("Registered:", userCred.user);
+      const idToken = await userCred.user.getIdToken();
+
+      const res = await fetch("http://localhost:5000/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          idToken,
+          fullName: formData.regUsername,
+          phone: formData.regMobile,
+          isAdmin: false,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Backend registration failed");
+
+      console.log("Backend registration success:", data);
       alert("Registration successful!");
     }
   } catch (err) {
@@ -112,6 +135,7 @@ export default function AuthForms() {
     alert(err.message);
   }
 };
+
 
   return (
     <div className={`wrapper ${isRegister ? "active" : ""} black-white-theme`}>
