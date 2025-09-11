@@ -20,6 +20,7 @@ export default function Dashboard() {
   };
 
   return (
+    <>
     <div className="app-container">
       {/* Sidebar */}
       <aside className="sidebar">
@@ -122,43 +123,52 @@ export default function Dashboard() {
         </div>
 
         <div className="kanban-board">
-      {/* Column 1 - Open */}
-      <div className="kanban-column">
-        <h2>Open</h2>
-        <div className="kanban-card high">
-          <h3>Pothole near bus stop</h3>
-          <p>Large pothole causing traffic issues.</p>
-          <span className="meta">Priority: High</span>
+          {/* Column 1 - Open */}
+          <div className="kanban-column">
+            <h2>Open</h2>
+            <IssueCard
+              imageUrl="https://via.placeholder.com/80x80.png?text=Photo"
+              problem="Pothole on Main Street"
+              description="Huge pothole near bus stop."
+              severity="High"
+              type="Road"
+              city="Bengaluru"
+              state="Karnataka"
+            />
+            <IssueCard
+              imageUrl="https://via.placeholder.com/80x80.png?text=Photo"
+              problem="Street Light Not Working"
+              description="Street light has been off for 5 nights."
+              severity="Low"
+              type="Electricity"
+              city="Mumbai"
+              state="Maharashtra"
+            />
+          </div>
         </div>
-        <div className="kanban-card medium">
-          <h3>Streetlight not working</h3>
-          <p>Streetlight is off near main junction.</p>
-          <span className="meta">Priority: Medium</span>
-        </div>
-      </div>
 
-      {/* Column 2 - In Progress */}
-      <div className="kanban-column">
-        <h2>In Progress</h2>
-        <div className="kanban-card low">
-          <h3>Garbage collection delay</h3>
-          <p>Garbage not collected in sector 12.</p>
-          <span className="meta">Priority: Low</span>
-        </div>
-      </div>
-
-      {/* Column 3 - Resolved */}
-      <div className="kanban-column">
-        <h2>Resolved</h2>
-        <div className="kanban-card medium">
-          <h3>Broken water pipe</h3>
-          <p>Water pipe fixed near market area.</p>
-          <span className="meta">Priority: Medium</span>
-        </div>
-      </div>
-    </div>
-    
       </main>
+    </div>
+    </>
+  );
+}
+
+// Add IssueCard component above export
+function IssueCard({ imageUrl, problem, description, severity, type, city, state }) {
+  return (
+    <div className="issue-card">
+      <img src={imageUrl} alt={problem} className="issue-thumb" />
+      <div className="issue-details">
+        <div className="issue-header">
+          <h3>{problem}</h3>
+          <span className={`severity severity-${severity.toLowerCase()}`}>{severity}</span>
+        </div>
+        <p className="issue-desc">{description}</p>
+        <div className="issue-meta">
+          <span className="issue-type">{type}</span>
+          <span className="issue-location">{city}, {state}</span>
+        </div>
+      </div>
     </div>
   );
 }
