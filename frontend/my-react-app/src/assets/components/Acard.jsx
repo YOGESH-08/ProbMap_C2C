@@ -4,11 +4,12 @@ import "./Details.css";
 import img from "../photo/zoro.jpg"; 
 
 const Acard = ({ details, onDelete }) => {
+  console.log(details);
   return (
     <div className="flex flex-col md:flex-row rounded-2xl overflow-hidden shadow-lg max-w-5xl mx-auto relative">
       <div className="kovai-card">
         <div className="kovai-image-section">
-          <img src={img} alt={details.name} />
+          <img src={details.imageUrl} alt={details.name} />
           <div className="kovai-info-overlay">
             <h2>{details.name}</h2>
             <p>

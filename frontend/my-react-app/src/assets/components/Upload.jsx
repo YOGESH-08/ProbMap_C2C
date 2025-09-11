@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import "../Styles/upload.css";
 import TextField from "@mui/material/TextField";
 import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
@@ -52,6 +52,30 @@ export default function Upload() {
   const [preview, setPreview] = useState(null);
   const fileInputRef = useRef(null);
 
+  // Webcam state
+  const [showWebcam, setShowWebcam] = useState(false);
+  const videoRef = useRef(null);
+  const canvasRef = useRef(null);
+
+  // Webcam setup
+  useEffect(() => {
+    if (showWebcam) {
+      (async () => {
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+          if (videoRef.current) videoRef.current.srcObject = stream;
+        } catch (err) {
+          alert("Cannot access webcam: " + err.message);
+          setShowWebcam(false);
+        }
+      })();
+    } else {
+      if (videoRef.current?.srcObject) {
+        videoRef.current.srcObject.getTracks().forEach(track => track.stop());
+      }
+    }
+  }, [showWebcam]);
+
   const handleUseCurrentLocation = () => {
     if (!navigator.geolocation) {
       alert("Geolocation not supported");
@@ -73,28 +97,27 @@ export default function Upload() {
     });
   };
 
-  const handleSelectOnMap = () => {
-    setShowMap(true);
-  };
+  const handleSelectOnMap = () => setShowMap(true);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      setFormData((prev) => ({ ...prev, photo: file }));
+      setFormData(prev => ({ ...prev, photo: file }));
       setPreview(URL.createObjectURL(file));
       setAnalysisResult(null);
     }
   };
 
-  const handleCameraClick = () => {
+  const handleMobileCameraClick = () => {
     fileInputRef.current.click();
   };
 
+<<<<<<< Updated upstream
   const analyzeImage = async (imageFile) => {
     try {
       const formData = new FormData();
@@ -120,6 +143,24 @@ export default function Upload() {
         is_public_property: false
       };
     }
+=======
+  const handleCaptureWebcam = () => {
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+    if (!video || !canvas) return;
+
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const ctx = canvas.getContext("2d");
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    canvas.toBlob(blob => {
+      const file = new File([blob], "webcam-photo.jpg", { type: "image/jpeg" });
+      setFormData(prev => ({ ...prev, photo: file }));
+      setPreview(URL.createObjectURL(file));
+      setShowWebcam(false);
+    }, "image/jpeg");
+>>>>>>> Stashed changes
   };
 
   const handleSubmit = async (e) => {
@@ -131,7 +172,6 @@ export default function Upload() {
       setLoading(false);
       return;
     }
-
     if (!location) {
       alert("Please select or use your location!");
       setLoading(false);
@@ -155,20 +195,31 @@ export default function Upload() {
       const data = new FormData();
       data.append("title", formData.problemType);
       data.append("description", formData.description);
+<<<<<<< Updated upstream
       data.append("location", JSON.stringify({
         latitude: location.lat,
         longitude: location.lng,
       }));
+=======
+      data.append("category", formData.problemType);
+      data.append("district", formData.district); 
+      data.append(
+        "location",
+        JSON.stringify({ latitude: location.lat, longitude: location.lng })
+      );
+>>>>>>> Stashed changes
       data.append("image", formData.photo);
 
       const res = await fetch(`${BACKEND_URL}/issue`, {
         method: "POST",
         body: data,
+<<<<<<< Updated upstream
+=======
+        credentials: "include",
+>>>>>>> Stashed changes
       });
 
-      if (!res.ok) {
-        throw new Error("Failed to create issue");
-      }
+      if (!res.ok) throw new Error("Failed to create issue");
 
       const result = await res.json();
       alert(`Issue submitted successfully!\n\nAnalysis Results:\n${JSON.stringify(analysis, null, 2)}`);
@@ -179,6 +230,7 @@ export default function Upload() {
       setLocation(null);
       setAddress("");
       setShowMap(false);
+<<<<<<< Updated upstream
       setAnalysisResult(null);
 
     } catch (error) {
@@ -205,20 +257,22 @@ export default function Upload() {
       alert("Error analyzing image: " + error.message);
     } finally {
       setLoading(false);
+=======
+      setShowWebcam(false);
+    } catch (error) {
+      console.error(error);
+      alert("Error submitting issue: " + error.message);
+>>>>>>> Stashed changes
     }
   };
 
   return (
-    <div className="body123 ">
+    <div className="body123">
       <div className="container">
         <h1>REPORT PUBLIC PROPERTY DAMAGE</h1>
 
         <label>Problem Type:</label>
-        <select
-          name="problemType"
-          value={formData.problemType}
-          onChange={handleChange}
-        >
+        <select name="problemType" value={formData.problemType} onChange={handleChange}>
           <option value="">Select Problem</option>
           <option>Pothole</option>
           <option>Traffic Signals</option>
@@ -230,8 +284,7 @@ export default function Upload() {
         </select>
 
         <label>Description:</label>
-        <br />
-        <br />
+        <br /><br />
         <TextField
           name="description"
           value={formData.description}
@@ -239,37 +292,19 @@ export default function Upload() {
           placeholder="Describe the problem..."
           multiline
           variant="standard"
-          sx={{
-            width: "90%",
-            "& .MuiInputBase-root": { color: "grey" },
-            "& .MuiInput-underline:before": { borderBottomColor: "gray" },
-            "& .MuiInput-underline:hover:before": {
-              borderBottomColor: "white",
-            },
-            "& .MuiInput-underline:after": {
-              borderBottomColor: "white",
-            },
-          }}
+          sx={{ width: "90%" }}
         />
 
-        <div className="upload-box" onClick={handleCameraClick}>
+        {/* Photo Preview / Upload */}
+        <div className="upload-box" onClick={handleMobileCameraClick}>
           {preview ? (
             <img
               src={preview}
               alt="Preview"
-              style={{
-                width: "100%",
-                maxHeight: "200px",
-                objectFit: "cover",
-              }}
+              style={{ width: "100%", maxHeight: "200px", objectFit: "cover" }}
             />
           ) : (
-            <span
-              style={{
-                color: "rgb(136, 129, 129)",
-                textDecoration: "underline",
-              }}
-            >
+            <span style={{ color: "rgb(136, 129, 129)", textDecoration: "underline" }}>
               📸 Take a Photo / Upload
             </span>
           )}
@@ -284,6 +319,7 @@ export default function Upload() {
           onChange={handleFileChange}
         />
 
+<<<<<<< Updated upstream
         {formData.photo && (
           <button 
             type="button" 
@@ -309,25 +345,30 @@ export default function Upload() {
             <p><strong>Cost Estimate:</strong> ${analysisResult.cost_estimate}</p>
             <p><strong>Confidence:</strong> {(analysisResult.confidence * 100).toFixed(1)}%</p>
             <p><strong>Public Property:</strong> {analysisResult.is_public_property ? "Yes" : "No"}</p>
+=======
+        {/* Webcam buttons */}
+        <div style={{ marginTop: "10px" }}>
+          <button type="button" onClick={() => setShowWebcam(true)}>💻 Open Webcam</button>
+        </div>
+
+        {showWebcam && (
+          <div style={{ textAlign: "center", marginTop: "10px" }}>
+            <video ref={videoRef} autoPlay style={{ width: "100%", maxHeight: "300px" }} />
+            <canvas ref={canvasRef} style={{ display: "none" }} />
+            <button onClick={handleCaptureWebcam}>📸 Capture</button>
+            <button onClick={() => setShowWebcam(false)}>❌ Close</button>
+>>>>>>> Stashed changes
           </div>
         )}
 
         <div style={{ marginTop: "15px" }}>
-          <button type="button" onClick={handleUseCurrentLocation}>
-            📍 Use My Current Location
-          </button>
-          <button type="button" onClick={handleSelectOnMap}>
-            🗺️ Select on Map
-          </button>
+          <button type="button" onClick={handleUseCurrentLocation}>📍 Use My Current Location</button>
+          <button type="button" onClick={handleSelectOnMap}>🗺️ Select on Map</button>
         </div>
 
         {showMap && (
           <div style={{ height: "300px", marginTop: "15px" }}>
-            <MapContainer
-              center={[20.5937, 78.9629]} 
-              zoom={5}
-              style={{ height: "100%", width: "100%" }}
-            >
+            <MapContainer center={[20.5937, 78.9629]} zoom={5} style={{ height: "100%", width: "100%" }}>
               <TileLayer
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 attribution='&copy; <a href="https://osm.org/copyright">OpenStreetMap</a>'
@@ -345,6 +386,7 @@ export default function Upload() {
         )}
 
         <br />
+<<<<<<< Updated upstream
         <button onClick={handleSubmit} disabled={loading}>
           {loading ? "⏳ Processing..." : "✅ Submit"}
         </button>
@@ -362,6 +404,17 @@ export default function Upload() {
         >
           🔄 Reset
         </button>
+=======
+        <button onClick={handleSubmit}>✅ Submit</button>
+        <button type="reset" onClick={() => {
+          setFormData({ problemType: "", description: "", photo: null });
+          setPreview(null);
+          setLocation(null);
+          setAddress("");
+          setShowMap(false);
+          setShowWebcam(false);
+        }}>🔄 Reset</button>
+>>>>>>> Stashed changes
       </div>
     </div>
   );

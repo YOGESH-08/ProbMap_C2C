@@ -37,9 +37,9 @@ function App() {
     };
   }, []);
 
-  // if (!user) {
-  //   return <AuthForms />;
-  // }
+  if (!user) {
+    return <AuthForms />;
+  }
 
   return (
     <>

@@ -17,7 +17,7 @@ const UserIssues = ({ filterStatus }) => {
         throw new Error(errData.error || "Failed to fetch issues");
       }
       const data = await res.json();
-
+      console.log("data:",data);
       let filtered = data;
       if (filterStatus === "pending") {
         filtered = data.filter((issue) => issue.status === "pending");
@@ -56,24 +56,28 @@ const UserIssues = ({ filterStatus }) => {
   if (loading) return <p>Loading your issues...</p>;
   if (error) return <p style={{ color: "red" }}>{error}</p>;
   if (issues.length === 0)
-    return <p>No {filterStatus === "pending" ? "pending" : "resolved/rejected/acknowledged"} issues found.</p>;
+    return <p style={{paddingTop:"15px"}}>No {filterStatus === "pending" ? "pending" : "resolved/rejected/acknowledged"} issues found.</p>;
 
   return (
     <div className="space-y-6">
       {issues.map((issue) => (
         <Acard
-          key={issue._id}
-          details={{
-            id: issue._id,
-            name: issue.title,
-            location: `${issue.location.latitude}, ${issue.location.longitude}`,
-            description: issue.description,
-            adminDescription: issue.adminResponse?.message || "Pending",
-            severity: issue.severity,
-            status: issue.status,
-          }}
-          onDelete={() => deleteIssue(issue._id)}
-        />
+  key={issue._id}
+  details={{
+    id: issue._id,
+    name: issue.title,
+    location: `${issue.location.latitude}, ${issue.location.longitude}`,
+    description: issue.description,
+    adminDescription: issue.adminResponse?.message || "Pending",
+    severity: issue.severity,
+    status: issue.status,
+    imageUrl: issue.imageUrl,      
+    district: issue.district || "", 
+  }}
+  onDelete={() => deleteIssue(issue._id)}
+/>
+
+
       ))}
     </div>
   );

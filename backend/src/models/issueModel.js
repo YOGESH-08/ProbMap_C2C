@@ -11,7 +11,13 @@ const issueSchema = new mongoose.Schema(
       longitude: { type: Number, required: true },
     },
 
-    imageUrl: { type: String },
+    district: { 
+      type: String, 
+      required: true,
+      trim: true,
+    },
+
+    imageUrl: String,
 
     status: { 
       type: String, 

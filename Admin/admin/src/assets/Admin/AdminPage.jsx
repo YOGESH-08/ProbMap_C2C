@@ -9,12 +9,11 @@ export default function Dashboard() {
   const [showChart, setShowChart] = useState(true);
   const navigate = useNavigate();
 
-  // ✅ Logout function
   const handleLogout = async () => {
     try {
-      await signOut(auth); // Firebase logout
+      await signOut(auth); 
       console.log("Admin logged out");
-      navigate("/"); // Redirect to login page
+      navigate("/"); 
     } catch (error) {
       console.error("Logout failed:", error);
     }
@@ -37,7 +36,7 @@ export default function Dashboard() {
               <a
                 className="nav-link"
                 href="#"
-                onClick={() => setShowChart(false)} // 🔹 Hide chart, show issues
+                onClick={() => setShowChart(false)} 
               >
                 <i className="fa-regular fa-file-lines"></i>
                 <span>Issues</span>
@@ -113,18 +112,15 @@ export default function Dashboard() {
         </nav>
       </aside>
 
-      {/* Main Content */}
       <main className="main">
         <header className="navbar">
           <div className="company">ProbMap</div>
         </header>
 
-        {/* Chart Section */}
         <div className={`my-4 w-100 ${showChart ? "" : "hidden"}`}>
           <MyChart />
         </div>
 
-        {/* Issues Section */}
         <div className={`issue-holder ${showChart ? "" : "show"}`}>
           <div className="box box1"><p>lorem</p></div>
           <div className="box box1"><p>lorem</p></div>
