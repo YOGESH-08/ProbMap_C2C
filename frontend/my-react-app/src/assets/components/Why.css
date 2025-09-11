@@ -1,36 +1,41 @@
 .section-container {
   display: flex;
+  flex-direction: column;
   align-items: flex-start;
   width: 100%;
   min-height: 100vh;
+  top:100px;
   background: #010101;
   color: #f2f2f2;
   font-family: "Inter", sans-serif;
   overflow: visible;
-  margin-top: 100px;  
+  margin-top: 80px;
+  padding: 0 20px;
+  box-sizing: border-box;
 }
-
 
 /* Left scrollable part */
 .scrollable-content {
-  flex: 1;
-  padding: 4rem 6rem;
+  width: 100%;
+  padding: 2rem 1rem;
+  order: 2;
 }
 
 .content-block {
-  margin-bottom: 100px;
-  max-width: 650px;
+  margin-bottom: 60px;
+  max-width: 100%;
 }
 
 .content-block h1 {
-  font-size: 2.8rem;
+  font-size: 2rem;
   margin-bottom: 1rem;
   color: #e4e9f7;
   font-weight: 700;
+  line-height: 1.2;
 }
 
 .content-block h2 {
-  font-size: 1.6rem;
+  font-size: 1.4rem;
   color: #10ab7a;
   margin-bottom: 0.75rem;
   font-weight: 600;
@@ -38,72 +43,189 @@
 
 .content-block p {
   font-size: 1rem;
-  line-height: 1.7;
+  line-height: 1.6;
   color: #d0d0d0;
 }
 
 /* Right sticky image */
 .sticky-image {
-  flex: 1;
-  position: sticky;                  /* stays at top until container ends */
-  height: 100vh;
+  width: 100%;
+  position: relative;
+  height: 50vh;
   background: #111;
   display: flex;
   justify-content: center;
   align-items: center;
   padding: 0;
+  margin-top: 100px;
+  order: 1;
+  margin-bottom: 2rem;
 }
 
 .sticky-image img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  border-radius: 16px;
-  box-shadow: 0px 25px 50px rgba(0, 0, 0, 0.65);
+  border-radius: 12px;
+  box-shadow: 0px 15px 30px rgba(0, 0, 0, 0.65);
 }
 
-
-
-
+/* Below section */
+.belowsection-container {
+  width: 100%;
+  padding: 0 20px;
+  box-sizing: border-box;
+}
 
 .always-connected {
-  padding: 4rem 6rem;
+  padding: 3rem 1rem;
   background: #3e3d3d;
   font-family: "Inter", sans-serif;
+  border-radius: 12px;
+  margin: 2rem 0;
 }
 
 .section-title {
   font-size: 14px;
   font-weight: 700;
   letter-spacing: 1px;
-  margin-bottom: 3rem;
+  margin-bottom: 2rem;
   color: #FFF;
+  text-align: center;
 }
 
 .features {
   display: flex;
-  justify-content: space-between;
-  gap: 2rem;
+  flex-direction: column;
+  gap: 2.5rem;
 }
 
 .feature-item {
-  flex: 1;
-  max-width: 320px;
+  width: 100%;
+  text-align: center;
+  padding: 0 10px;
 }
 
 .icon {
   margin-bottom: 1rem;
+  display: flex;
+  justify-content: center;
 }
 
 .feature-title {
-  font-size: 20px;
+  font-size: 1.25rem;
   font-weight: 600;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.75rem;
   color: #FFF;
 }
 
 .feature-desc {
-  font-size: 15px;
+  font-size: 0.95rem;
   line-height: 1.6;
   color: #FFF;
+}
+
+/* Tablet Styles */
+@media (min-width: 768px) {
+  .section-container {
+    flex-direction: row;
+    padding: 0 40px;
+  }
+  
+  .scrollable-content {
+    width: 50%;
+    padding: 4rem 2rem;
+    order: 1;
+  }
+  
+  .sticky-image {
+    width: 50%;
+    height: 100vh;
+    position: sticky;
+    top: 0;
+    order: 2;
+    margin-bottom: 0;
+  }
+  
+  .content-block {
+    margin-bottom: 80px;
+  }
+  
+  .content-block h1 {
+    font-size: 2.4rem;
+  }
+  
+  .always-connected {
+    padding: 4rem 2rem;
+  }
+  
+  .features {
+    flex-direction: row;
+    gap: 1.5rem;
+  }
+  
+  .feature-item {
+    width: 33.33%;
+    text-align: left;
+  }
+  
+  .icon {
+    justify-content: flex-start;
+  }
+}
+
+/* Desktop Styles */
+@media (min-width: 1024px) {
+  .section-container {
+    padding: 0 60px;
+  }
+  
+  .scrollable-content {
+    padding: 4rem 4rem;
+  }
+  
+  .content-block h1 {
+    font-size: 2.8rem;
+  }
+  
+  .content-block h2 {
+    font-size: 1.6rem;
+  }
+  
+  .content-block p {
+    font-size: 1.1rem;
+  }
+  
+  .always-connected {
+    padding: 4rem 3rem;
+  }
+  
+  .features {
+    gap: 2rem;
+  }
+}
+
+/* Large Desktop Styles */
+@media (min-width: 1200px) {
+  .scrollable-content {
+    padding: 4rem 6rem;
+  }
+  
+  .content-block {
+    max-width: 650px;
+  }
+}
+
+/* Mobile Landscape Optimization */
+@media (max-height: 500px) and (orientation: landscape) {
+  .sticky-image {
+    height: 100vh;
+  }
+}
+
+/* High-Resolution Displays */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .sticky-image img {
+    box-shadow: 0px 20px 40px rgba(0, 0, 0, 0.7);
+  }
 }

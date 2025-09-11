@@ -159,7 +159,6 @@ export default function Upload() {
           <option value="">Select Problem</option>
           <option>Pothole</option>
           <option>Traffic Signals</option>
-          <option>Dividers</option>
           <option>Pipelines</option>
           <option>Drainage</option>
           <option>Street Light</option>

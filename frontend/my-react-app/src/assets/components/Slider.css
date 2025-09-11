@@ -219,10 +219,10 @@ h1.maintext {
 .quote-btn {
     background: #fff;
     color: #000;
-    padding: 12px 24px;
+    padding: 16px 28px;
     font-size: 1rem;
     font-weight: bold;
-    width: 10vw;
+    width: 24vw;
     border: none;
     border-radius: 20px;
     cursor: pointer;
@@ -234,10 +234,11 @@ h1.maintext {
     color: white;
 }
 .quotesimg {
-    width: 357.14px;
+    width: 450.14px;
     height: 571.42px;
     padding-left:4vw;
     margin-top: 30px;
+    border-radius: 30px;
     position: relative;
     animation: mobile 3s;
     animation-iteration-count: 1;
