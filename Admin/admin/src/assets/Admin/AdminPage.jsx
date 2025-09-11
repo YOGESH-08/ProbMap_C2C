@@ -170,5 +170,8 @@ function IssueCard({ imageUrl, problem, description, severity, type, city, state
         </div>
       </div>
     </div>
+    
+      </main>
+    </div>
   );
 }

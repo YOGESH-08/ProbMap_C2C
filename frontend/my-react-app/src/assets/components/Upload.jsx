@@ -1,22 +1,28 @@
-import React, { useState, useRef } from "react";
+// src/assets/components/Upload.jsx
+import React, { useState, useRef, useEffect} from "react";
 import "../Styles/upload.css";
 import TextField from "@mui/material/TextField";
 import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
-import CameraAltIcon from '@mui/icons-material/CameraAlt';
+import CameraAltIcon from "@mui/icons-material/CameraAlt";
 import Webcam from "react-webcam";
 
 // Configure backend URL based on environment
-const BACKEND_URL = process.env.NODE_ENV === 'production' 
-  ? 'https://your-backend-app.railway.app' 
-  : 'http://localhost:8000';
+const BACKEND_URL =
+  process.env.NODE_ENV === "production"
+    ? "https://your-backend-app.railway.app"
+    : "http://localhost:8000";
 
+// Fix leaflet icons
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
-  iconUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png",
-  iconRetinaUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png",
-  shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
+  iconUrl:
+    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png",
+  iconRetinaUrl:
+    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png",
+  shadowUrl:
+    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
 });
 
 function LocationPicker({ setLocation, setAddress }) {
@@ -30,7 +36,7 @@ function LocationPicker({ setLocation, setAddress }) {
         );
         const data = await res.json();
         setAddress(data.display_name || "Unknown location");
-      } catch (err) {
+      } catch {
         setAddress("Unable to fetch address");
       }
     },
@@ -56,25 +62,41 @@ export default function Upload() {
   const fileInputRef = useRef(null);
   const webcamRef = useRef(null);
 
+  // cleanup preview blob URL when it changes/unmounts
+  useEffect(() => {
+    return () => {
+      if (preview && preview.startsWith("blob:")) {
+        try {
+          URL.revokeObjectURL(preview);
+        } catch (e) {}
+      }
+    };
+  }, [preview]);
+
   const handleUseCurrentLocation = () => {
     if (!navigator.geolocation) {
       alert("Geolocation not supported");
       return;
     }
-    navigator.geolocation.getCurrentPosition(async (pos) => {
-      const coords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-      setLocation(coords);
-      try {
-        const res = await fetch(
-          `https://nominatim.openstreetmap.org/reverse?format=json&lat=${coords.lat}&lon=${coords.lng}`
-        );
-        const data = await res.json();
-        setAddress(data.display_name || "Unknown location");
-      } catch (err) {
-        setAddress("Unable to fetch address");
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const coords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        setLocation(coords);
+        try {
+          const res = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${coords.lat}&lon=${coords.lng}`
+          );
+          const data = await res.json();
+          setAddress(data.display_name || "Unknown location");
+        } catch {
+          setAddress("Unable to fetch address");
+        }
+        setShowMap(false);
+      },
+      (err) => {
+        alert("Could not get location: " + err.message);
       }
-      setShowMap(false);
-    });
+    );
   };
 
   const handleSelectOnMap = () => {
@@ -87,31 +109,46 @@ export default function Upload() {
   };
 
   const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setFormData((prev) => ({ ...prev, photo: file }));
-      setPreview(URL.createObjectURL(file));
-      setAnalysisResult(null);
+    const file = e.target.files?.[0];
+    if (!file) return;
+    // revoke previous blob to avoid leaks
+    if (preview && preview.startsWith("blob:")) {
+      try {
+        URL.revokeObjectURL(preview);
+      } catch {}
     }
+    const blobUrl = URL.createObjectURL(file);
+    setFormData((prev) => ({ ...prev, photo: file }));
+    setPreview(blobUrl);
+    setAnalysisResult(null);
   };
 
-  const handleCameraClick = () => {
-    setShowCamera(true);
-  };
+  const handleCameraClick = () => setShowCamera(true);
 
-  const handleCapture = () => {
-    const imageSrc = webcamRef.current.getScreenshot();
-    if (imageSrc) {
-      // Convert base64 to file
-      fetch(imageSrc)
-        .then(res => res.blob())
-        .then(blob => {
-          const file = new File([blob], "camera-capture.jpg", { type: "image/jpeg" });
-          setFormData((prev) => ({ ...prev, photo: file }));
-          setPreview(imageSrc);
-          setAnalysisResult(null);
-          setShowCamera(false);
-        });
+  const handleCapture = async () => {
+    try {
+      const imageSrc = webcamRef.current?.getScreenshot();
+      if (!imageSrc) return;
+      // convert base64 data URL to blob, then File
+      const res = await fetch(imageSrc);
+      const blob = await res.blob();
+      const file = new File([blob], "camera-capture.jpg", {
+        type: "image/jpeg",
+      });
+
+      if (preview && preview.startsWith("blob:")) {
+        try {
+          URL.revokeObjectURL(preview);
+        } catch {}
+      }
+      const blobUrl = URL.createObjectURL(file);
+      setFormData((prev) => ({ ...prev, photo: file }));
+      setPreview(blobUrl);
+      setAnalysisResult(null);
+      setShowCamera(false);
+    } catch (err) {
+      console.error("capture error:", err);
+      alert("Could not capture photo: " + err.message);
     }
   };
 
@@ -119,29 +156,30 @@ export default function Upload() {
     setShowCamera(false);
   };
 
+  // NOTE: renamed localPayload to avoid shadowing state.formData
   const analyzeImage = async (imageFile) => {
     try {
-      const formData = new FormData();
-      formData.append("image", imageFile);
-      
+      const payload = new FormData();
+      payload.append("image", imageFile);
+
       const response = await fetch(`${BACKEND_URL}/analyze-image`, {
         method: "POST",
-        body: formData,
+        body: payload,
       });
 
       if (!response.ok) {
         throw new Error("Image analysis failed");
       }
-
       return await response.json();
     } catch (error) {
       console.error("Error analyzing image:", error);
+      // return fallback so UI doesn't break
       return {
         category: "Others",
         importance: null,
         cost_estimate: "0",
         confidence: 0.7,
-        is_public_property: false
+        is_public_property: false,
       };
     }
   };
@@ -150,80 +188,76 @@ export default function Upload() {
     e.preventDefault();
     setLoading(true);
 
-    if (!formData.problemType || !formData.description || !formData.photo) {
-      alert("Please fill all fields and take/upload a photo!");
-      setLoading(false);
-      return;
-    }
-
-    if (!location) {
-      alert("Please select or use your location!");
-      setLoading(false);
-      return;
-    }
-
     try {
+      if (!formData.problemType || !formData.description || !formData.photo) {
+        alert("Please fill all fields and take/upload a photo!");
+        return;
+      }
+      if (!location) {
+        alert("Please select or use your location!");
+        return;
+      }
+
       const analysis = await analyzeImage(formData.photo);
       setAnalysisResult(analysis);
 
       if (!analysis.is_public_property) {
         const shouldContinue = window.confirm(
-          "This image doesn't appear to show public property damage. Do you want to continue with submission?"
+          "This image doesn't appear to show public property damage. Continue?"
         );
-        if (!shouldContinue) {
-          setLoading(false);
-          return;
-        }
+        if (!shouldContinue) return;
       }
 
-      const data = new FormData();
-      data.append("title", formData.problemType);
-      data.append("description", formData.description);
-      data.append("location", JSON.stringify({
-        latitude: location.lat,
-        longitude: location.lng,
-      }));
-      data.append("image", formData.photo);
+      const payload = new FormData();
+      payload.append("title", formData.problemType);
+      payload.append("description", formData.description);
+      payload.append(
+        "location",
+        JSON.stringify({ latitude: location.lat, longitude: location.lng })
+      );
+      payload.append("image", formData.photo);
 
       const res = await fetch(`${BACKEND_URL}/issue`, {
         method: "POST",
-        body: data,
+        body: payload,
       });
 
       if (!res.ok) {
-        throw newError("Failed to create issue");
+        const errText = await res.text().catch(() => "");
+        throw new Error("Failed to create issue. " + errText);
       }
 
-      const result = await res.json();
+      await res.json();
 
-      // Reset form
+      // reset
       setFormData({ problemType: "", description: "", photo: null });
+      if (preview && preview.startsWith("blob:")) {
+        try {
+          URL.revokeObjectURL(preview);
+        } catch {}
+      }
       setPreview(null);
       setLocation(null);
       setAddress("");
       setShowMap(false);
       setAnalysisResult(null);
-
-    } catch (error) {
-      console.error(error);
-      alert("Error submitting issue: " + error.message);
+      alert("Issue submitted successfully!");
+    } catch (err) {
+      console.error(err);
+      alert("Error submitting issue: " + (err.message || err));
     } finally {
       setLoading(false);
     }
   };
 
   const handleQuickAnalyze = async () => {
-    if (!formData.photo) {
-      alert("Please upload an image first!");
-      return;
-    }
-
+    if (!formData.photo) return alert("Please upload an image first!");
     setLoading(true);
     try {
       const analysis = await analyzeImage(formData.photo);
       setAnalysisResult(analysis);
     } catch (error) {
-      console.error("Error in quick analysis:", error);
+      console.error(error);
       alert("Error analyzing image: " + error.message);
     } finally {
       setLoading(false);
@@ -233,17 +267,32 @@ export default function Upload() {
   const videoConstraints = {
     width: 1280,
     height: 720,
-    facingMode: "environment" // Use back camera by default
+    facingMode: "environment",
   };
 
   return (
-    <div className="body123 ">
+    <div className="body123">
       <div className="container">
         <h1>REPORT PUBLIC PROPERTY DAMAGE</h1>
 
-        <label>Description:</label>
-        <br />
-        <br />
+        <label>Problem Type:</label>
+        <select
+          name="problemType"
+          value={formData.problemType}
+          onChange={handleChange}
+          style={{ width: "90%", padding: "8px", marginTop: "6px" }}
+        >
+          <option value="">Select Problem</option>
+          <option>Pothole</option>
+          <option>Traffic Signals</option>
+          <option>Pipelines</option>
+          <option>Drainage</option>
+          <option>Street Light</option>
+          <option>Public Tap</option>
+          <option>Others</option>
+        </select>
+
+        <label style={{ marginTop: 12 }}>Description:</label>
         <TextField
           name="description"
           value={formData.description}
@@ -258,81 +307,96 @@ export default function Upload() {
             "& .MuiInput-underline:hover:before": {
               borderBottomColor: "white",
             },
-            "& .MuiInput-underline:after": {
-              borderBottomColor: "white",
-            },
+            "& .MuiInput-underline:after": { borderBottomColor: "white" },
+            marginTop: 1,
           }}
         />
 
         {/* Camera Modal */}
         {showCamera && (
-          <div style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: "rgba(0,0,0,0.9)",
-            zIndex: 1000,
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center"
-          }}>
+          <div
+            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: "rgba(0,0,0,0.9)",
+              zIndex: 1000,
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
             <Webcam
               audio={false}
               ref={webcamRef}
               screenshotFormat="image/jpeg"
               videoConstraints={videoConstraints}
-              style={{ width: "100%", maxWidth: "500px", borderRadius: "10px" }}
+              style={{ width: "100%", maxWidth: 500, borderRadius: 10 }}
             />
-            <div style={{ marginTop: "20px", display: "flex", gap: "10px" }}>
-              <button onClick={handleCapture} style={{ padding: "10px 20px", backgroundColor: "#4CAF50", color: "black", border: "none", borderRadius: "5px" }}>
+            <div style={{ marginTop: 20, display: "flex", gap: 10 }}>
+              <button
+                onClick={handleCapture}
+                style={{
+                  padding: "10px 20px",
+                  backgroundColor: "#4CAF50",
+                  border: "none",
+                  borderRadius: 5,
+                }}
+              >
                 📸 Capture
               </button>
-              <button onClick={handleCloseCamera} style={{ padding: "10px 20px", backgroundColor: "#f44336", color: "black", border: "none", borderRadius: "5px" }}>
+              <button
+                onClick={handleCloseCamera}
+                style={{
+                  padding: "10px 20px",
+                  backgroundColor: "#f44336",
+                  border: "none",
+                  borderRadius: 5,
+                }}
+              >
                 ❌ Close
               </button>
             </div>
           </div>
         )}
 
-        {/* Image Upload/Capture Section */}
-        <div style={{ marginTop: "20px" }}>
-          <label style={{ display: "block", marginBottom: "10px", color: "white" }}>Upload or Capture Photo:</label>
-          
-          <div style={{ display: "flex", gap: "10px", marginBottom: "10px" }}>
-            <button 
-              type="button" 
-              onClick={() => fileInputRef.current.click()}
-              style={{ 
-                padding: "10px 15px", 
-                backgroundColor: "#2196F3", 
-                color: "black", 
-                border: "none", 
-                borderRadius: "5px",
-                cursor: "pointer"
+        {/* Upload / Camera Controls */}
+        <div style={{ marginTop: 20 }}>
+          <label style={{ display: "block", marginBottom: 10, color: "white" }}>
+            Upload or Capture Photo:
+          </label>
+
+          <div style={{ display: "flex", gap: 10, marginBottom: 10 }}>
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              style={{
+                padding: "10px 15px",
+                backgroundColor: "#2196F3",
+                border: "none",
+                borderRadius: 5,
               }}
             >
               📁 Upload Image
             </button>
-            
-            <button 
-              type="button" 
+
+            <button
+              type="button"
               onClick={handleCameraClick}
-              style={{ 
-                padding: "10px 15px", 
-                backgroundColor: "#FF9800", 
-                color: "black", 
-                border: "none", 
-                borderRadius: "5px",
-                cursor: "pointer",
+              style={{
+                padding: "10px 15px",
+                backgroundColor: "#FF9800",
+                border: "none",
+                borderRadius: 5,
                 display: "flex",
                 alignItems: "center",
-                gap: "5px"
+                gap: 5,
               }}
             >
-              <CameraAltIcon style={{ fontSize: "18px" ,color:"black"}} />
+              <CameraAltIcon style={{ fontSize: 18, color: "black" }} />
               Open Camera
             </button>
           </div>
@@ -346,34 +410,38 @@ export default function Upload() {
           />
         </div>
 
+        {/* Preview */}
         {preview && (
-          <div style={{ marginTop: "15px", textAlign: "center" }}>
+          <div style={{ marginTop: 15, textAlign: "center" }}>
             <img
               src={preview}
               alt="Preview"
               style={{
                 width: "100%",
-                maxWidth: "300px",
-                maxHeight: "200px",
+                maxWidth: 300,
+                maxHeight: 200,
                 objectFit: "cover",
-                borderRadius: "10px",
-                border: "2px solid #ddd"
+                borderRadius: 10,
+                border: "2px solid #ddd",
               }}
             />
-            <button 
+            <button
               onClick={() => {
+                if (preview && preview.startsWith("blob:")) {
+                  try {
+                    URL.revokeObjectURL(preview);
+                  } catch {}
+                }
                 setPreview(null);
-                setFormData(prev => ({ ...prev, photo: null }));
+                setFormData((prev) => ({ ...prev, photo: null }));
                 setAnalysisResult(null);
               }}
-              style={{ 
-                marginTop: "10px", 
-                padding: "5px 10px", 
-                backgroundColor: "#f44336", 
-                color: "black", 
-                border: "none", 
-                borderRadius: "5px",
-                cursor: "pointer"
+              style={{
+                marginTop: 10,
+                padding: "5px 10px",
+                backgroundColor: "#f44336",
+                border: "none",
+                borderRadius: 5,
               }}
             >
               Remove Image
@@ -381,71 +449,88 @@ export default function Upload() {
           </div>
         )}
 
+        {/* Quick analyze */}
         {formData.photo && (
-          <button 
-            type="button" 
+          <button
+            type="button"
             onClick={handleQuickAnalyze}
-            style={{ 
-              marginTop: "15px", 
-              padding: "10px 15px", 
-              backgroundColor: "#4CAF50", 
-              color: "black", 
-              border: "none", 
-              borderRadius: "5px",
-              cursor: "pointer",
-              width: "100%"
+            style={{
+              marginTop: 15,
+              padding: "10px 15px",
+              backgroundColor: "#4CAF50",
+              border: "none",
+              borderRadius: 5,
+              width: "100%",
             }}
           >
             🔍 Analyze Image
           </button>
         )}
 
+        {/* Analysis results */}
         {analysisResult && (
-          <div style={{ 
-            marginTop: "15px", 
-            padding: "15px", 
-            border: "1px solid #ccc",
-            borderRadius: "5px",
-            color: "black",
-            backgroundColor: "#f9f9f9"
-          }}>
-            <h4 style={{ color: "black", marginBottom: "10px" }}>Image Analysis:</h4>
-            <p><strong>Category:</strong> {analysisResult.category}</p>
-            <p><strong>Importance:</strong> {analysisResult.importance || "N/A"}</p>
-            <p><strong>Cost Estimate:</strong> ${analysisResult.cost_estimate}</p>
-            <p><strong>Confidence:</strong> {(analysisResult.confidence * 100).toFixed(1)}%</p>
-            <p><strong>Public Property:</strong> {analysisResult.is_public_property ? "Yes" : "No"}</p>
+          <div
+            style={{
+              marginTop: 15,
+              padding: 15,
+              border: "1px solid #ccc",
+              borderRadius: 5,
+              color: "black",
+              backgroundColor: "#f9f9f9",
+            }}
+          >
+            <h4 style={{ marginBottom: 10 }}>Image Analysis:</h4>
+            <p>
+              <strong>Category:</strong> {analysisResult.category}
+            </p>
+            <p>
+              <strong>Importance:</strong> {analysisResult.importance || "N/A"}
+            </p>
+            <p>
+              <strong>Cost Estimate:</strong> ${analysisResult.cost_estimate}
+            </p>
+            <p>
+              <strong>Confidence:</strong>{" "}
+              {((analysisResult.confidence ?? 0) * 100).toFixed(1)}%
+            </p>
+            <p>
+              <strong>Public Property:</strong>{" "}
+              {analysisResult.is_public_property ? "Yes" : "No"}
+            </p>
           </div>
         )}
 
-        <div style={{ marginTop: "15px" }}>
+        <div style={{ marginTop: 15 }}>
           <button type="button" onClick={handleUseCurrentLocation}>
             📍 Use My Current Location
           </button>
           <button type="button" onClick={handleSelectOnMap}>
-            🗺️ Select on Map
+            🗺 Select on Map
           </button>
         </div>
 
         {showMap && (
-          <div style={{ height: "300px", marginTop: "15px" }}>
+          <div style={{ height: 300, marginTop: 15 }}>
             <MapContainer
-              center={[20.5937, 78.9629]} 
+              center={[20.5937, 78.9629]}
               zoom={5}
               style={{ height: "100%", width: "100%" }}
             >
               <TileLayer
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                attribution='&copy; <a href="https://osm.org/copyright">OpenStreetMap</a>'
+                attribution="&copy; OpenStreetMap"
               />
-              <LocationPicker setLocation={setLocation} setAddress={setAddress} />
+              <LocationPicker
+                setLocation={setLocation}
+                setAddress={setAddress}
+              />
               {location && <Marker position={[location.lat, location.lng]} />}
             </MapContainer>
           </div>
         )}
 
         {address && (
-          <p style={{ marginTop: "10px", fontStyle: "italic", color: "green" }}>
+          <p style={{ marginTop: 10, fontStyle: "italic", color: "green" }}>
             📍 Location: {address}
           </p>
         )}
@@ -458,6 +543,11 @@ export default function Upload() {
           type="reset"
           onClick={() => {
             setFormData({ problemType: "", description: "", photo: null });
+            if (preview && preview.startsWith("blob:")) {
+              try {
+                URL.revokeObjectURL(preview);
+              } catch {}
+            }
             setPreview(null);
             setLocation(null);
             setAddress("");

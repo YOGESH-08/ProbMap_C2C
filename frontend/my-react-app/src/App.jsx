@@ -25,17 +25,24 @@ function Home1() {
 function App() {
   const [user, setUser] = useState(null);
   const [showPopup, setShowPopup] = useState(false);
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
+      // Show popup only if not previously closed
+      if (currentUser && !localStorage.getItem("popupClosed")) {
+        setShowPopup(true);
+      }
     });
-    // Show popup after 3 seconds
-    const timer = setTimeout(() => setShowPopup(true), 3000);
     return () => {
       unsubscribe();
-      clearTimeout(timer);
     };
   }, []);
+
+  const handleClosePopup = () => {
+    setShowPopup(false);
+    localStorage.setItem("popupClosed", "true");
+  };
 
   if (!user) {
     return <AuthForms />;
@@ -43,7 +50,7 @@ function App() {
 
   return (
     <>
-      {showPopup && <Popup onClose={() => setShowPopup(false)} />}
+      {showPopup && <Popup onClose={handleClosePopup} />}
       <Router>
         <Navbar />
         <Routes>
