@@ -1,19 +1,20 @@
 import React, { useState, useRef } from "react";
 import "../Styles/upload.css";
 import TextField from "@mui/material/TextField";
-
 import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 
+// Configure backend URL based on environment
+const BACKEND_URL = process.env.NODE_ENV === 'production' 
+  ? 'https://your-backend-app.railway.app' 
+  : 'http://localhost:8000';
+
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
-  iconUrl:
-    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png",
-  iconRetinaUrl:
-    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png",
-  shadowUrl:
-    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
+  iconUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png",
+  iconRetinaUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png",
+  shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
 });
 
 function LocationPicker({ setLocation, setAddress }) {
@@ -21,7 +22,6 @@ function LocationPicker({ setLocation, setAddress }) {
     async click(e) {
       const coords = { lat: e.latlng.lat, lng: e.latlng.lng };
       setLocation(coords);
-
       try {
         const res = await fetch(
           `https://nominatim.openstreetmap.org/reverse?format=json&lat=${coords.lat}&lon=${coords.lng}`
@@ -40,6 +40,8 @@ export default function Upload() {
   const [location, setLocation] = useState(null);
   const [address, setAddress] = useState("");
   const [showMap, setShowMap] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [analysisResult, setAnalysisResult] = useState(null);
 
   const [formData, setFormData] = useState({
     problemType: "",
@@ -58,7 +60,6 @@ export default function Upload() {
     navigator.geolocation.getCurrentPosition(async (pos) => {
       const coords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
       setLocation(coords);
-
       try {
         const res = await fetch(
           `https://nominatim.openstreetmap.org/reverse?format=json&lat=${coords.lat}&lon=${coords.lng}`
@@ -68,7 +69,6 @@ export default function Upload() {
       } catch (err) {
         setAddress("Unable to fetch address");
       }
-
       setShowMap(false);
     });
   };
@@ -87,43 +87,83 @@ export default function Upload() {
     if (file) {
       setFormData((prev) => ({ ...prev, photo: file }));
       setPreview(URL.createObjectURL(file));
+      setAnalysisResult(null);
     }
   };
 
   const handleCameraClick = () => {
     fileInputRef.current.click();
   };
+
+  const analyzeImage = async (imageFile) => {
+    try {
+      const formData = new FormData();
+      formData.append("image", imageFile);
+      
+      const response = await fetch(`${BACKEND_URL}/analyze-image`, {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error("Image analysis failed");
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error("Error analyzing image:", error);
+      return {
+        category: "Others",
+        importance: null,
+        cost_estimate: "0",
+        confidence: 0.7,
+        is_public_property: false
+      };
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
 
     if (!formData.problemType || !formData.description || !formData.photo) {
       alert("Please fill all fields and take/upload a photo!");
+      setLoading(false);
       return;
     }
 
     if (!location) {
       alert("Please select or use your location!");
+      setLoading(false);
       return;
     }
 
     try {
+      const analysis = await analyzeImage(formData.photo);
+      setAnalysisResult(analysis);
+
+      if (!analysis.is_public_property) {
+        const shouldContinue = window.confirm(
+          "This image doesn't appear to show public property damage. Do you want to continue with submission?"
+        );
+        if (!shouldContinue) {
+          setLoading(false);
+          return;
+        }
+      }
+
       const data = new FormData();
       data.append("title", formData.problemType);
       data.append("description", formData.description);
-      data.append("category", formData.problemType);
- data.append(
-      "location",
-      JSON.stringify({
+      data.append("location", JSON.stringify({
         latitude: location.lat,
         longitude: location.lng,
-      })
-    );
+      }));
       data.append("image", formData.photo);
 
-      const res = await fetch("http://localhost:5000/issue", {
+      const res = await fetch(`${BACKEND_URL}/issue`, {
         method: "POST",
         body: data,
-        credentials:"include",
       });
 
       if (!res.ok) {
@@ -131,8 +171,7 @@ export default function Upload() {
       }
 
       const result = await res.json();
-      console.log("Issue Created:", result);
-      alert("Problem uploaded successfully!");
+      alert(`Issue submitted successfully!\n\nAnalysis Results:\n${JSON.stringify(analysis, null, 2)}`);
 
       // Reset form
       setFormData({ problemType: "", description: "", photo: null });
@@ -140,9 +179,32 @@ export default function Upload() {
       setLocation(null);
       setAddress("");
       setShowMap(false);
+      setAnalysisResult(null);
+
     } catch (error) {
       console.error(error);
-      alert(" Error submitting issue: " + error.message);
+      alert("Error submitting issue: " + error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleQuickAnalyze = async () => {
+    if (!formData.photo) {
+      alert("Please upload an image first!");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const analysis = await analyzeImage(formData.photo);
+      setAnalysisResult(analysis);
+      alert(`Image Analysis Results:\n${JSON.stringify(analysis, null, 2)}`);
+    } catch (error) {
+      console.error("Error in quick analysis:", error);
+      alert("Error analyzing image: " + error.message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -210,7 +272,6 @@ export default function Upload() {
             >
               📸 Take a Photo / Upload
             </span>
-            
           )}
         </div>
 
@@ -222,6 +283,35 @@ export default function Upload() {
           style={{ display: "none" }}
           onChange={handleFileChange}
         />
+
+        {formData.photo && (
+          <button 
+            type="button" 
+            onClick={handleQuickAnalyze}
+            style={{ marginTop: "10px", backgroundColor: "#4CAF50" }}
+          >
+            🔍 Analyze Image
+          </button>
+        )}
+
+        {analysisResult && (
+          <div style={{ 
+            marginTop: "15px", 
+            padding: "10px", 
+            border: "1px solid #ccc",
+            borderRadius: "5px",
+            color:"black",
+            backgroundColor: "#f9f9f9"
+          }}>
+            <h4 style={{ color:"black",}}>Image Analysis:</h4>
+            <p><strong>Category:</strong> {analysisResult.category}</p>
+            <p><strong>Importance:</strong> {analysisResult.importance || "N/A"}</p>
+            <p><strong>Cost Estimate:</strong> ${analysisResult.cost_estimate}</p>
+            <p><strong>Confidence:</strong> {(analysisResult.confidence * 100).toFixed(1)}%</p>
+            <p><strong>Public Property:</strong> {analysisResult.is_public_property ? "Yes" : "No"}</p>
+          </div>
+        )}
+
         <div style={{ marginTop: "15px" }}>
           <button type="button" onClick={handleUseCurrentLocation}>
             📍 Use My Current Location
@@ -255,7 +345,9 @@ export default function Upload() {
         )}
 
         <br />
-        <button onClick={handleSubmit}>✅ Submit</button>
+        <button onClick={handleSubmit} disabled={loading}>
+          {loading ? "⏳ Processing..." : "✅ Submit"}
+        </button>
         <button
           type="reset"
           onClick={() => {
@@ -264,7 +356,9 @@ export default function Upload() {
             setLocation(null);
             setAddress("");
             setShowMap(false);
+            setAnalysisResult(null);
           }}
+          disabled={loading}
         >
           🔄 Reset
         </button>
