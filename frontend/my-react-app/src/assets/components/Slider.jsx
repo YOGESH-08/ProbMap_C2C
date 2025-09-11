@@ -14,7 +14,7 @@ export default function Slider() {
           <div className="mainnavbutton">
           <Link to="/report">
               <button className="quote-btn">Upload</button>
-        </Link>
+            </Link>
           </div>
         </div>
         <div className="mobile_img">

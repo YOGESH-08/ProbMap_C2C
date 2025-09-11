@@ -29,7 +29,7 @@ function Navbar() {
         <Link to="/report" className="report">Report</Link>
         <Link to="/history" className="solution">History</Link>
       </div>
-
+                
       <div className="contact-button" id="Logout" onClick={handleLogout}>
         Logout
       </div>

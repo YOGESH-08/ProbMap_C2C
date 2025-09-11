@@ -2,16 +2,16 @@ import React from "react"
 import "../Styles/Footer.css"
 export default function Footer(){
     return (
-    <div>
+        <footer>
         <div class="footer-top">
-            <p>Your academic companion!</p>
-            <h1>Let's Elevate Learning</h1>
+            <p>Your Service companion!</p>
+            <h1>Let's Elevate Social Serivce</h1>
         </div>
     
         <div class="footer-content">
             <div class="footer-column">
                 <h3>Contact Us</h3>
-                <p><a href="mailto:support@vitgpt.com">support@vitgpt.com</a></p>
+                <p><a href="mailto:support@vitgpt.com">support@probmap.com</a></p>
             </div>
     
             <div class="footer-column">
@@ -22,7 +22,7 @@ export default function Footer(){
     
             <div class="footer-column">
                 <h3>Support</h3>
-                <p>Available 24/7 for student queries</p>
+                <p>Available 24/7 for public queries</p>
             </div>
         </div>
     
@@ -35,9 +35,10 @@ export default function Footer(){
         </div>
     
         <div class="footer-bottom">
-            <p>© 2025 VITGPT. All Rights Reserved.</p>
+            <p>© 2025 ProbMap. All Rights Reserved.</p>
             <a href="#">Back to Top ↑</a>
         </div>
-    </div>
+        </footer>
+    
     )
 }

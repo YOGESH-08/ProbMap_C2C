@@ -7,15 +7,17 @@ import Home from "./assets/components/Home";
 import Why from "./assets/components/Why";
 import Acard from "./assets/components/Acard";
 import AuthForms from "./assets/components/Authforms";
+import Footer from "./assets/components/Footer";
 import { auth } from "../src/assets/components/firebase/firebase"; 
 import { onAuthStateChanged } from "firebase/auth";
 
 function Home1() {
   return (
     <>
-      <Slider />
-      <Home />
-      <Why />
+    <Slider/>
+    <Home/>
+    <Why/>
+
     </>
   );
 }
@@ -46,11 +48,12 @@ function App() {
     return () => unsubscribe(); 
   }, []);
 
-  // if (!user) {
-  //   return <AuthForms />;
-  // }
+  if (!user) {
+    return <AuthForms />;
+  }
 
   return (
+    // <AuthForms/>
     <Router>
       <Navbar />
       <Routes>

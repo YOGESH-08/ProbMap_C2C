@@ -213,7 +213,7 @@ h1.maintext {
     color: #b3b3b3;
 }
 .mainnavbutton {
-    margin-top: 20px;
+    margin-top: 10px;
 }
 
 .quote-btn {
@@ -222,6 +222,7 @@ h1.maintext {
     padding: 12px 24px;
     font-size: 1rem;
     font-weight: bold;
+    width: 10vw;
     border: none;
     border-radius: 20px;
     cursor: pointer;

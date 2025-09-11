@@ -146,7 +146,7 @@ export default function Upload() {
   };
 
   return (
-    <div className="body123">
+    <div className="body123 ">
       <div className="container">
         <h1>REPORT PUBLIC PROPERTY DAMAGE</h1>
 
@@ -213,6 +213,7 @@ export default function Upload() {
             
           )}
         </div>
+
         <input
           type="file"
           accept="image/*"
