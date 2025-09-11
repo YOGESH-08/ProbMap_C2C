@@ -10,10 +10,10 @@
   justify-content: space-between;
   padding: 15px 40px;
   /* background: linear-gradient(90deg, #0d0d0d, #2c0f16, #2f1e57, #3b3fa1, #4f64c7); */
-  background-color: rgba(55, 200, 200, 0.87);
+  background-color:rgba(55, 200, 200, 0.87);
   color: white;
   font-family: Arial, Helvetica, sans-serif;
-  height: 50px;
+  height: 70px;
 }
 
 /* Left logo */

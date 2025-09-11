@@ -30,11 +30,13 @@ const Acard = ({ details }) => {
             
           </div>
           <div>
+            <br></br>
             <h2>Admin Description:</h2>
             <br/>
             <p className="mt-3 text-gray-700 non">{details.description}</p>
             
           </div>
+          <br></br>
           <div className="mt-5 space-y-4">
             
             <DetailRow label="Money spent:" value={`₹ ${details.pricePerHour}`} />

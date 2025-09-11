@@ -93,7 +93,7 @@
             margin-top:12vh;
         }
         .container {
-            background: linear-gradient(#165e70,#fff);
+            background:rgb(30, 30, 30);
             padding: 25px;
             border-radius: 12px;
             width: 37vw;
@@ -101,9 +101,39 @@
             text-align: center;
             box-shadow: white;
             color:#ffffff;
+            border: 2px solid rgba(255,255,255,0.12); /* subtle white border */
+            box-shadow: 0 10px 40px rgba(254, 254, 254, 0.6);
+            background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+            animation: waveShadow 3s ease-in-out infinite;
         }
+        @keyframes waveShadow {
+            0%, 100% {
+              box-shadow: 
+                0 0 0 rgba(254, 254, 254, 0.3),
+                0 0 10px rgba(254, 254, 254, 0.2),
+                0 0 20px rgba(254, 254, 254, 0.1);
+            }
+            25% {
+              box-shadow: 
+                5px 5px 5px rgba(254, 254, 254, 0.4),
+                10px 10px 15px rgba(254, 254, 254, 0.3),
+                15px 15px 25px rgba(254, 254, 254, 0.2);
+            }
+            50% {
+              box-shadow: 
+                0 0 10px rgba(254, 254, 254, 0.5),
+                0 0 20px rgba(254, 254, 254, 0.3),
+                0 0 30px rgba(254, 254, 254, 0.1);
+            }
+            75% {
+              box-shadow: 
+                -5px 5px 5px rgba(254, 254, 254, 0.4),
+                -10px 10px 15px rgba(254, 254, 254, 0.3),
+                -15px 15px 25px rgba(254, 254, 254, 0.2);
+            }
+          }
         .container h1 {
-            color: #fe0519;
+            color: #fff;
             margin-bottom: 5vh;
             font-size: 24px;
             padding: 30px;
@@ -157,4 +187,35 @@
                 justify-content: center;
                 align-items: center;
             }
-        }
+        }/* container */
+.wrapper {
+    position: relative;
+    margin-top:90px;
+    margin-left:180px;
+    width: 860px;
+    max-width: 95vw;
+    height: 520px;
+    overflow: hidden;
+    border-radius: 12px;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid rgba(255,255,255,0.12); /* subtle white border */
+    box-shadow: 0 10px 40px rgba(254, 254, 254, 0.6);
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  }
+  
+  /* form boxes */
+  .form-box {
+    position: absolute;
+    top: 0;
+    width: 50%;
+    height: 100%;
+    padding: 60px 48px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    transition: transform .7s cubic-bezier(.2,.8,.2,1), opacity .6s;
+    z-index: 3;
+    pointer-events: auto;
+  }
+  
