@@ -37,7 +37,22 @@ function History() {
 
   return <Acard details={sampleDetails} />;
 }
-
+function Pending(){
+  const sampleDetails1 = {
+    name: "City Sports Arena",
+    location: "Coimbatore, India",
+    rating: 4.5,
+    description:
+      "A modern sports arena with facilities for football, basketball, and indoor games. Spacious and well-maintained grounds with professional coaches.",
+    pricePerHour: 500,
+    sports: ["Football", "Basketball", "Tennis"],
+    openTime: "6:00 AM",
+    closeTime: "10:00 PM",
+  };
+  return(
+    <Acard details={sampleDetails1} />
+  );
+}
 function App() {
   const [user, setUser] = useState(null);
 
@@ -59,6 +74,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Home1 />} />
         <Route path="/report" element={<Upload />} />
+        <Route path="/pending" element={<Pending/>}/>
         <Route path="/history" element={<History />} />
       </Routes>
     </Router>

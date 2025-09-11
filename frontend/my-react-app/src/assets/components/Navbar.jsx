@@ -54,8 +54,8 @@ function Navbar() {
         <div className="mid-nav">
           <Link to="/" className="nav-link" onClick={() => setIsMenuOpen(false)}>Home</Link>
           <Link to="/report" className="nav-link" onClick={() => setIsMenuOpen(false)}>Report</Link>
+          <Link to="/pending" className="nav-link" onClick={() => setIsMenuOpen(false)}>Pending</Link>
           <Link to="/history" className="nav-link" onClick={() => setIsMenuOpen(false)}>History</Link>
-          
         </div>
                   
         <div className="right-nav">
