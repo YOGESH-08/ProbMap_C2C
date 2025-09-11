@@ -1,9 +1,24 @@
 import React, { useState } from "react";
 import "./Admin_page.css";
 import MyChart from "./Chart";
+import { signOut } from "firebase/auth";
+import { auth } from "../../components/firebase/firebaseConfig.js";
+import { useNavigate } from "react-router-dom";
 
 export default function Dashboard() {
   const [showChart, setShowChart] = useState(true);
+  const navigate = useNavigate();
+
+  // ✅ Logout function
+  const handleLogout = async () => {
+    try {
+      await signOut(auth); // Firebase logout
+      console.log("Admin logged out");
+      navigate("/"); // Redirect to login page
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
+  };
 
   return (
     <div className="app-container">
@@ -84,12 +99,13 @@ export default function Dashboard() {
             </li>
           </ul>
 
+          {/* ✅ Logout Button */}
           <div className="bottom-links">
             <a className="nav-link" href="#">
               <i className="fa-solid fa-gear"></i>
               <span>Settings</span>
             </a>
-            <a className="nav-link" href="#">
+            <a className="nav-link" href="#" onClick={handleLogout}>
               <i className="fa-solid fa-arrow-right-from-bracket"></i>
               <span>Sign out</span>
             </a>
@@ -110,25 +126,12 @@ export default function Dashboard() {
 
         {/* Issues Section */}
         <div className={`issue-holder ${showChart ? "" : "show"}`}>
-          <div className="box box1">
-            <p>lorem</p>
-          </div>
-          <div className="box box1">
-            <p>lorem</p>
-          </div>
-          <div className="box box1">
-            <p>lorem</p>
-          </div>
-          <div className="box box1">
-            <p>lorem</p>
-          </div>
+          <div className="box box1"><p>lorem</p></div>
+          <div className="box box1"><p>lorem</p></div>
+          <div className="box box1"><p>lorem</p></div>
+          <div className="box box1"><p>lorem</p></div>
         </div>
-
-
-        {/* Pending Section */}
       </main>
-
-
     </div>
   );
 }

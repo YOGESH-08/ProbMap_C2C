@@ -1,15 +1,22 @@
 import React, { useState } from "react";
-import "../Styles/authform.css";
+import "./AuthForm.css";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { auth } from "../../components/firebase/firebaseConfig.js";
+import { useNavigate } from "react-router-dom";
 
-export default function Admin() {
-  const [formData, setFormData] = useState({ username: "", password: "" });
+export default function AuthForm() {
+  const [formData, setFormData] = useState({ email: "", password: "" });
   const [errors, setErrors] = useState({});
   const [serverError, setServerError] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
+  const navigate = useNavigate();
+
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.id]: e.target.value });
+    const { id, value } = e.target;
+    setFormData((prev) => ({ ...prev, [id]: value }));
+    setErrors((prev) => ({ ...prev, [id]: "" })); // ✅ Clear error on typing
   };
 
   const validateInput = (id, value) => {
@@ -21,18 +28,16 @@ export default function Admin() {
 
   const handleBlur = (e) => {
     const { id, value } = e.target;
-    const msg = validateInput(id, value);
-    setErrors((prev) => ({ ...prev, [id]: msg }));
+    setErrors((prev) => ({ ...prev, [id]: validateInput(id, value) }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const ids = ["username", "password"];
-    let valid = true;
     let newErrors = {};
+    let valid = true;
 
-    ids.forEach((id) => {
+    ["email", "password"].forEach((id) => {
       const msg = validateInput(id, formData[id]);
       if (msg) valid = false;
       newErrors[id] = msg;
@@ -45,20 +50,34 @@ export default function Admin() {
     setServerError("");
 
     try {
+      // ✅ Firebase Login
+      const userCred = await signInWithEmailAndPassword(
+        auth,
+        formData.email,
+        formData.password
+      );
+
+      // ✅ Get Firebase token
+      const idToken = await userCred.user.getIdToken();
+
+      // ✅ Send to backend for admin verification
       const res = await fetch("http://localhost:5000/admin/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify(formData),
+        body: JSON.stringify({ idToken }),
       });
 
       const data = await res.json();
 
-      if (!res.ok) throw new Error(data.error || "Login failed");
+      if (!res.ok) {
+        throw new Error(data.error || "Login failed. You are not an admin.");
+      }
 
-      console.log("Admin logged in:", data);
-      alert("Admin successfully signed in!");
+      console.log("✅ Admin logged in:", data);
+      navigate("/admin"); // ✅ Redirect only if backend confirms admin
     } catch (err) {
+      console.error("Login failed:", err);
       setServerError(err.message);
     } finally {
       setLoading(false);
@@ -70,20 +89,23 @@ export default function Admin() {
       <div className="form-box login">
         <h2 className="animation">Admin Sign In</h2>
         <form onSubmit={handleSubmit} className="animation">
+          {/* Email */}
           <div className="input-box">
             <input
-              id="username"
-              type="text"
+              id="email"
+              type="email"
               placeholder=" "
-              value={formData.username}
+              value={formData.email}
               onChange={handleChange}
               onBlur={handleBlur}
+              required
             />
-            <label htmlFor="username">Username</label>
+            <label htmlFor="email">Email</label>
             <i className="bx bxs-user"></i>
-            <span className="error-message">{errors.username}</span>
+            <span className="error-message">{errors.email}</span>
           </div>
 
+          {/* Password */}
           <div className="input-box">
             <input
               id="password"
@@ -92,6 +114,7 @@ export default function Admin() {
               value={formData.password}
               onChange={handleChange}
               onBlur={handleBlur}
+              required
             />
             <label htmlFor="password">Password</label>
             <i className="bx bxs-lock-alt"></i>
@@ -105,12 +128,14 @@ export default function Admin() {
             <span className="error-message">{errors.password}</span>
           </div>
 
+          {/* Error Message */}
           {serverError && (
             <p className="error-message" style={{ marginBottom: "10px" }}>
               {serverError}
             </p>
           )}
 
+          {/* Submit Button */}
           <button type="submit" className="btn" disabled={loading}>
             {loading ? "Signing in..." : "Sign In"}
           </button>
