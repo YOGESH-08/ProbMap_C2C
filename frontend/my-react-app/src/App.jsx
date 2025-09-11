@@ -46,9 +46,9 @@ function App() {
     return () => unsubscribe(); 
   }, []);
 
-  if (!user) {
-    return <AuthForms />;
-  }
+  // if (!user) {
+  //   return <AuthForms />;
+  // }
 
   return (
     <Router>
