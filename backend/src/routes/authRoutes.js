@@ -1,6 +1,6 @@
 import {Router} from "express";
 import FirebaseAuthController from "../controllers/firebaseAuthController.js";
-import adminAuth from "../middlewares/adminAuth.js";
+import firebaseAuth from "../middlewares/firebaseAuth.js";
 const router = Router();
 
 router.post("/login",FirebaseAuthController.login);

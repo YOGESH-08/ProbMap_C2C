@@ -12,9 +12,8 @@ import Webcam from "react-webcam";
 const BACKEND_URL =
   process.env.NODE_ENV === "production"
     ? "https://your-backend-app.railway.app"
-    : "http://localhost:5000"; // match your express server
+    : "http://localhost:8000"; 
 
-// Fix Leaflet icons
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconUrl:
@@ -28,36 +27,51 @@ L.Icon.Default.mergeOptions({
 // Helper to extract district
 const extractDistrict = (addressObj) => {
   if (!addressObj) return "Unknown";
+  console.log(addressObj);
   return (
     addressObj.state_district ||
     addressObj.county ||
-    addressObj.city ||
     addressObj.town ||
+    addressObj.village ||
+    addressObj.hamlet ||
+    addressObj.suburb ||  
+    addressObj.city || 
     addressObj.state ||
     "Unknown"
   );
 };
 
+
 // Map click handler
-function LocationPicker({ setLocation, setAddress, setDistrict }) {
+// ...imports remain the same
+
+// Map click handler (now receives setFormData)
+function LocationPicker({ setLocation, setAddress, setDistrict, setFormData }) {
   useMapEvents({
     async click(e) {
       const coords = { lat: e.latlng.lat, lng: e.latlng.lng };
       setLocation(coords);
+
       try {
         const res = await fetch(
-          `https://nominatim.openstreetmap.org/reverse?format=json&lat=${coords.lat}&lon=${coords.lng}`
+          `https://nominatim.openstreetmap.org/reverse?format=json&lat=${coords.lat}&lon=${coords.lng}&accept-language=en`
         );
         const data = await res.json();
+
+        const addr = data.display_name || "Unknown location";
+        const dist = extractDistrict(data.address);
+
+        setAddress(addr);
+        setDistrict(dist);
+
+        // ✅ Also store directly in formData
         setFormData(prev => ({
-        ...prev,
-        location: coords,
-        district: district,
-        address: data.display_name || "Unknown location",
-      }));
-        setAddress(data.display_name || "Unknown location");
-        setDistrict(extractDistrict(data.address));
-        
+  ...prev,
+  location: coords,
+  district: extractDistrict(data.address),
+  address: data.display_name,
+}));
+
       } catch {
         setAddress("Unable to fetch address");
         setDistrict("Unknown");
@@ -83,6 +97,7 @@ const [formData, setFormData] = useState({
   location: null,
   district: "",
   address: "",
+  adminMessage:"",
 });
 
 
@@ -109,12 +124,17 @@ const [formData, setFormData] = useState({
       async (pos) => {
         const coords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
         setLocation(coords);
+setFormData((prev) => ({
+  ...prev,
+  location: coords,
+}));
         try {
           const res = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${coords.lat}&lon=${coords.lng}`
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${coords.lat}&lon=${coords.lng}&accept-language=en`
           );
           const data = await res.json();
-          setAddress(data.display_name || "Unknown location");
+          console.log("Addressssss",data.display_name);
+          setAddress(data.display_name);
           setDistrict(extractDistrict(data.address));
         } catch {
           setAddress("Unable to fetch address");
@@ -189,6 +209,7 @@ const handleFileChange = (e) => {
 
       if (!response.ok) throw new Error("Image analysis failed");
       return await response.json();
+
     } catch (error) {
       console.error("Error analyzing image:", error);
       return {
@@ -209,14 +230,12 @@ const handleFileChange = (e) => {
         alert("Please fill all fields and take/upload a photo!");
         return;
       }
-      if (!location) {
-        alert("Please select or use your location!");
-        return;
-      }
-
+      if (!formData.location) {
+  alert("Please select or use your location!");
+  return;
+}
       const analysis = await analyzeImage(formData.photo);
       setAnalysisResult(analysis);
-
       if (!analysis.is_public_property) {
         const shouldContinue = window.confirm(
           "This image doesn't appear to show public property damage. Continue?"
@@ -225,17 +244,20 @@ const handleFileChange = (e) => {
       }
 
       const payload = new FormData();
-      payload.append("title", formData.problemType);
+      console.log(analysis);
+      payload.append("title", analysis.category);
       payload.append("description", formData.description);
       payload.append("category", analysis.category || "Others");
-      payload.append("location", JSON.stringify({ lat: location.lat, lng: location.lng }));
+      payload.append(
+        "location",
+        JSON.stringify({ lat: formData.location.lat, lng: formData.location.lng })
+      );
       payload.append("district", district || "Unknown");
       payload.append("importance", analysis.importance || "Medium");
       payload.append("cost_estimate", analysis.cost_estimate || "0");
       payload.append("is_public_property", analysis.is_public_property ? "yes" : "no");
       payload.append("image", formData.photo);
-
-      const res = await fetch(`${BACKEND_URL}/issue`, {
+      const res = await fetch(`http://localhost:5000/issue`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -277,6 +299,7 @@ const handleFileChange = (e) => {
     try {
       const analysis = await analyzeImage(formData.photo);
       setAnalysisResult(analysis);
+
     } catch (error) {
       console.error(error);
       alert("Error analyzing image: " + error.message);
@@ -290,7 +313,7 @@ const handleFileChange = (e) => {
   return (
     <div className="body123">
       <div className="container">
-        <h1>REPORT PUBLIC PROPERTY DAMAGE</h1>
+        <h1>REPORT PUBLIC PROPERTY <span >DAMAGE</span></h1>
 
         <label style={{ marginTop: 12 }}>Description:</label>
         <TextField
@@ -431,15 +454,26 @@ const handleFileChange = (e) => {
           <div style={{ height: 300, marginTop: 15 }}>
             <MapContainer center={[20.5937, 78.9629]} zoom={5} style={{ height: "100%", width: "100%" }}>
               <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution="&copy; OpenStreetMap" />
-              <LocationPicker setLocation={setLocation} setAddress={setAddress} setDistrict={setDistrict} />
-              {location && <Marker position={[location.lat, location.lng]} />}
+              <LocationPicker 
+  setLocation={setLocation} 
+  setAddress={setAddress} 
+  setDistrict={setDistrict} 
+  setFormData={setFormData}
+/>{formData.location && (
+  <Marker position={[formData.location.lat, formData.location.lng]}>
+    <Popup>{formData.address || "Unknown address"}</Popup>
+  </Marker>
+)}
+
+
+
             </MapContainer>
           </div>
         )}
 
         {/* Show address & district */}
         {address && <p style={{ marginTop: 10, fontStyle: "italic", color: "green" }}>📍 Location: {address}</p>}
-        {district && <p style={{ fontStyle: "italic", color: "blue" }}>🏢 District: {district}</p>}
+        {district && <p style={{ fontStyle: "italic", color: "white" }}>🏢 District: {district}</p>}
 
         <br />
         <button onClick={handleSubmit} disabled={loading}>{loading ? "⏳ Processing..." : "✅ Submit"}</button>

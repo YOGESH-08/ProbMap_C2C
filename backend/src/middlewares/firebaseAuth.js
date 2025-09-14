@@ -4,12 +4,10 @@ import User from "../models/userModel.js";
 class FirebaseAuthMiddleware {
   verifySessionCookie = async (req, res, next) => {
     const sessionCookie = req.cookies?.session || "";
-
     try {
       const decodedClaims = await admin
         .auth()
         .verifySessionCookie(sessionCookie, true);
-
       req.user = decodedClaims;
 
       const dbUser = await User.findOne({ firebaseUID: decodedClaims.uid });

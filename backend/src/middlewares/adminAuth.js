@@ -1,28 +1,30 @@
-import jwt from "jsonwebtoken";
+// middlewares/adminAuth.js
+import admin from "../firebase/firebaseConfig.js";
 import Admin from "../models/adminModel.js";
 
-const JWT_SECRET = process.env.JWT_SECRET || "supersecret";
-
+const auth = admin.auth();
+  
 class AdminAuthMiddleware {
-  verifyToken = async (req, res, next) => {
+  verifyCookie = async (req, res, next) => {
     try {
-      const token = req.cookies?.session;
-      if (!token) {
-        return res.status(401).json({ error: "Unauthorized. No session token." });
-      }
-      const decoded = jwt.verify(token, JWT_SECRET);
-      const admin = await Admin.findById(decoded.adminId);
-      if (!admin) return res.status(404).json({ error: "Admin not found" });
+      const sessionCookie = req.cookies?.session; // must be cookie, not raw ID token
+      if (!sessionCookie) return res.status(401).json({ error: "Unauthorized" });
 
-      if (!admin.isAdmin) {
-        return res.status(403).json({ error: "Forbidden. Not an admin." });
+      // Verify **session cookie**
+      const decodedClaims = await auth.verifySessionCookie(sessionCookie, true);
+      if (!decodedClaims || !decodedClaims.uid) {
+        return res.status(401).json({ error: "Invalid session" });
       }
 
-      req.admin = admin;
+      // Find admin using firebaseUID
+      const adminUser = await Admin.findOne({ firebaseUID: decodedClaims.uid });
+      if (!adminUser) return res.status(403).json({ error: "Forbidden" });
+
+      req.user = adminUser;
       next();
-    } catch (error) {
-      console.error("Invalid admin session", error);
-      return res.status(401).json({ error: "Unauthorized" });
+    } catch (err) {
+      console.error("Cookie verification failed:", err);
+      res.status(401).json({ error: "Unauthorized" });
     }
   };
 }

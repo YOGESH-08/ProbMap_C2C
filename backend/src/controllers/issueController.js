@@ -49,7 +49,6 @@ export const createIssue = async (req, res) => {
       { firebaseUID },
       { $inc: { numIssueRaised: 1 } }
     );
-
     res.status(201).json(newIssue);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -81,8 +80,11 @@ export const deleteIssue = async (req, res) => {
     if (issue.userId !== firebaseUID) {
       return res.status(403).json({ message: "Forbidden. You cannot delete this issue." });
     }
-
     await Issue.findByIdAndDelete(req.params.id);
+        await User.findOneAndUpdate(
+      { firebaseUID },
+      { $inc: { numIssueRaised: -1 } }
+    );
     res.status(200).json({ message: "Issue deleted successfully" });
   } catch (error) {
     res.status(500).json({ error: error.message });

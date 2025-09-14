@@ -31,7 +31,6 @@ const issueSchema = new mongoose.Schema(
 
     adminResponse: {
       message: { type: String },
-      respondedBy: { type: String },
       respondedAt: { type: Date },
     },
   },

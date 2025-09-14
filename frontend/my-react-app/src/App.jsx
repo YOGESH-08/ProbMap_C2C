@@ -30,7 +30,6 @@ function App() {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
-      // Show popup only if not previously closed
       if (currentUser && !localStorage.getItem("popupClosed")) {
         setShowPopup(true);
       }

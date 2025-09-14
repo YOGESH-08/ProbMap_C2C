@@ -23,7 +23,7 @@ app = FastAPI(title="Damage Reporting API")
 # CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],  # your React dev server
+    allow_origins=["http://localhost:5173"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -70,7 +70,7 @@ def analyze_image_with_gemini_sync(image: Image.Image) -> dict:
         prompt = """Analyze this image and determine if it shows damage to public property.
         
         If it shows public property damage (pothole, street light, road damage, drainage, traffic signals, pipelines, public tap, or similar), return a JSON object with these fields:
-        - category (Pothole, Traffic Signals, Pipelines, Drainage, Street Light, Public Tap, Road Damage, Others)
+        - category (Pothole, Traffic Signals, Pipelines, Drainage, Street Light, Public Tap, Road Damage, Garbage, related to public disturbance Others)
         - importance (High, Medium, Low)
         - cost_estimate (USD range, e.g. "500-1000")
         - confidence (0-1 float)
@@ -184,7 +184,7 @@ async def root():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("main:app", host="0.0.0.0", port=5000, reload=True)
     # Add this to your Python backend (main.py)
 @app.post("/analyze-image")
 async def analyze_image_only(image: UploadFile = File(...)):

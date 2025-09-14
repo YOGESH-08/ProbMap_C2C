@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import "./AuthForm.css";
-import { signInWithEmailAndPassword } from "firebase/auth";
+import { signInWithEmailAndPassword, signOut } from "firebase/auth";
 import { auth } from "../../components/firebase/firebaseConfig.js";
 import { useNavigate } from "react-router-dom";
 
@@ -10,13 +10,15 @@ export default function AuthForm() {
   const [serverError, setServerError] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [isAdminVerified, setIsAdminVerified] = useState(false);
+const [verificationDone, setVerificationDone] = useState(false);
 
   const navigate = useNavigate();
 
   const handleChange = (e) => {
     const { id, value } = e.target;
     setFormData((prev) => ({ ...prev, [id]: value }));
-    setErrors((prev) => ({ ...prev, [id]: "" })); // ✅ Clear error on typing
+    setErrors((prev) => ({ ...prev, [id]: "" })); 
   };
 
   const validateInput = (id, value) => {
@@ -50,37 +52,36 @@ export default function AuthForm() {
     setServerError("");
 
     try {
-      // ✅ Firebase Login
       const userCred = await signInWithEmailAndPassword(
         auth,
         formData.email,
         formData.password
       );
-
-      // ✅ Get Firebase token
       const idToken = await userCred.user.getIdToken();
-
-      // ✅ Send to backend for admin verification
-      const res = await fetch("http://localhost:5000/admin/login", {
+     const res = await fetch(`http://localhost:5000/admin/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({ idToken }),
       });
-
+if (!res.ok) {
+  await signOut(auth);
+  const data = await res.json().catch(() => ({}));
+  throw new Error(data.error || "Login failed. You are not an admin.");
+}
       const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.error || "Login failed. You are not an admin.");
+      
+      if(res.ok){
+      console.log("Admin logged in:", data);
+      navigate("/admin"); 
+       setIsAdminVerified(true);
       }
-
-      console.log("✅ Admin logged in:", data);
-      navigate("/admin"); // ✅ Redirect only if backend confirms admin
     } catch (err) {
       console.error("Login failed:", err);
       setServerError(err.message);
     } finally {
       setLoading(false);
+      setVerificationDone(true);
     }
   };
 

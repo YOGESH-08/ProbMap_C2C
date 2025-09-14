@@ -70,6 +70,9 @@ class FirebaseAuthController {
       return res.status(500).json({ error: "Logout failed" });
     }
   };
+  checkSession=()=>{
+    
+  }
 }
 
 export default new FirebaseAuthController();

@@ -82,7 +82,6 @@ const handleSubmit = async (e, type) => {
 console.log("Payload:", {
   idToken,
   fullName: formData.regUsername,
-  phone: formData.regMobile,
   isAdmin: false,
 });
 
@@ -93,7 +92,6 @@ console.log("Payload:", {
         body: JSON.stringify({
           idToken,
           fullName: userCred.user.displayName || formData.loginEmail.split("@")[0],
-          phone: formData.regMobile || "0000000000", 
           isAdmin: false,
         }),
       });

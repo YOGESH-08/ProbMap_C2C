@@ -17,7 +17,7 @@ const UserIssues = ({ filterStatus }) => {
         throw new Error(errData.error || "Failed to fetch issues");
       }
       const data = await res.json();
-      console.log("data:",data);
+
       let filtered = data;
       if (filterStatus === "pending") {
         filtered = data.filter((issue) => issue.status === "pending");
@@ -66,7 +66,7 @@ const UserIssues = ({ filterStatus }) => {
   details={{
     id: issue._id,
     name: issue.title,
-    location: `${issue.location.lat}, ${issue.location.lng}`,
+    location: issue.location,
     description: issue.description,
     adminDescription: issue.adminResponse?.message || "Pending",
     severity: issue.importance,
