@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import "./Admin_page.css";
+import "./PublicSection.css";
+import "./ReportsSection.css";
 import MyChart from "./Chart";
 import { signOut } from "firebase/auth";
 import { auth } from "../../components/firebase/firebaseConfig.js";
@@ -16,6 +18,16 @@ export default function Dashboard() {
   const [issues, setIssues] = useState();
   const [showFullLeaderboard, setShowFullLeaderboard] = useState(false);
   const [selectedIssueForMap, setSelectedIssueForMap] = useState(null);
+  const [reportFilters, setReportFilters] = useState({
+    timePeriod: "30days",
+    category: "",
+    status: "",
+    district: "",
+  });
+  const [reportData, setReportData] = useState(null);
+  const [reportLoading, setReportLoading] = useState(false);
+  const [adminProfile, setAdminProfile] = useState(null);
+  const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const BACKEND_URL = "http://localhost:5000";
 
   const fetchCityIssues = async () => {
@@ -84,6 +96,131 @@ export default function Dashboard() {
     setActiveView("map");
   };
 
+  // Report generation functions
+  const generateReport = async () => {
+    setReportLoading(true);
+    try {
+      const reportPayload = {
+        reportType: "comprehensive",
+        ...reportFilters,
+      };
+
+      // Convert time period to date range
+      const now = new Date();
+      let startDate, endDate;
+
+      switch (reportFilters.timePeriod) {
+        case "7days":
+          startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+          break;
+        case "30days":
+          startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+          break;
+        case "3months":
+          startDate = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
+          break;
+        case "1year":
+          startDate = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
+          break;
+        default:
+          startDate = null;
+      }
+
+      endDate = now;
+
+      if (startDate) {
+        reportPayload.startDate = startDate.toISOString();
+        reportPayload.endDate = endDate.toISOString();
+      }
+
+      const response = await fetch(`${BACKEND_URL}/admin/reports/generate`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify(reportPayload),
+      });
+
+      if (!response.ok) throw new Error("Failed to generate report");
+
+      const data = await response.json();
+      setReportData(data);
+    } catch (error) {
+      console.error("Error generating report:", error);
+      alert("Failed to generate report. Please try again.");
+    } finally {
+      setReportLoading(false);
+    }
+  };
+
+  const exportReportCSV = async () => {
+    setReportLoading(true);
+    try {
+      const reportPayload = {
+        reportType: "comprehensive",
+        ...reportFilters,
+      };
+
+      // Convert time period to date range
+      const now = new Date();
+      let startDate, endDate;
+
+      switch (reportFilters.timePeriod) {
+        case "7days":
+          startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+          break;
+        case "30days":
+          startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+          break;
+        case "3months":
+          startDate = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
+          break;
+        case "1year":
+          startDate = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
+          break;
+        default:
+          startDate = null;
+      }
+
+      endDate = now;
+
+      if (startDate) {
+        reportPayload.startDate = startDate.toISOString();
+        reportPayload.endDate = endDate.toISOString();
+      }
+
+      const response = await fetch(`${BACKEND_URL}/admin/reports/export-csv`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify(reportPayload),
+      });
+
+      if (!response.ok) throw new Error("Failed to export report");
+
+      // Create download link
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.style.display = "none";
+      a.href = url;
+      a.download = `issues-report-${
+        new Date().toISOString().split("T")[0]
+      }.csv`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Error exporting report:", error);
+      alert("Failed to export report. Please try again.");
+    } finally {
+      setReportLoading(false);
+    }
+  };
+
   // Check if device is mobile
   useEffect(() => {
     const checkIsMobile = () => {
@@ -118,9 +255,27 @@ export default function Dashboard() {
     }
   };
 
+  const fetchAdminProfile = async () => {
+    try {
+      const res = await fetch(`${BACKEND_URL}/admin/profile`, {
+        credentials: "include",
+      });
+      if (!res.ok) throw new Error("Failed to fetch admin profile");
+      const data = await res.json();
+      setAdminProfile(data);
+      console.log("Fetched Admin Profile:", data);
+    } catch (err) {
+      console.error("Error fetching admin profile:", err);
+    }
+  };
+
   useEffect(() => {
     if (activeView === "public") fetchUsers();
   }, [activeView]);
+
+  useEffect(() => {
+    fetchAdminProfile();
+  }, []);
 
   const handleLogout = async () => {
     try {
@@ -141,6 +296,20 @@ export default function Dashboard() {
     if (isMobile) {
       setSidebarOpen(false);
     }
+  };
+
+  const toggleProfileDropdown = () => {
+    setShowProfileDropdown(!showProfileDropdown);
+  };
+
+  const getInitials = (name) => {
+    if (!name) return "A";
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2);
   };
 
   const sortedUsers = [...users].sort(
@@ -226,31 +395,227 @@ export default function Dashboard() {
           <div className="public-content">
             <div className="content-header">
               <h2>Public Engagement</h2>
-              <p>Manage user rewards and contributions</p>
+              <p>
+                Manage user rewards, contributions, and community engagement
+              </p>
             </div>
 
+            {/* Stats Overview */}
+            <div className="engagement-stats">
+              <div className="stat-card">
+                <div className="stat-icon">
+                  <i className="fa-solid fa-users"></i>
+                </div>
+                <div className="stat-content">
+                  <h3>{users.length}</h3>
+                  <p>Total Users</p>
+                </div>
+              </div>
+              <div className="stat-card">
+                <div className="stat-icon">
+                  <i className="fa-solid fa-trophy"></i>
+                </div>
+                <div className="stat-content">
+                  <h3>
+                    {sortedUsers.length > 0 ? sortedUsers[0].numIssueRaised : 0}
+                  </h3>
+                  <p>Top Contributor</p>
+                </div>
+              </div>
+              <div className="stat-card">
+                <div className="stat-icon">
+                  <i className="fa-solid fa-chart-line"></i>
+                </div>
+                <div className="stat-content">
+                  <h3>
+                    {users.reduce(
+                      (sum, user) => sum + (user.numIssueRaised || 0),
+                      0
+                    )}
+                  </h3>
+                  <p>Total Issues Raised</p>
+                </div>
+              </div>
+              <div className="stat-card">
+                <div className="stat-icon">
+                  <i className="fa-solid fa-star"></i>
+                </div>
+                <div className="stat-content">
+                  <h3>
+                    {Math.round(
+                      (users.reduce(
+                        (sum, user) => sum + (user.numIssueRaised || 0),
+                        0
+                      ) /
+                        Math.max(users.length, 1)) *
+                        10
+                    ) / 10}
+                  </h3>
+                  <p>Avg Issues/User</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Top Contributors Section */}
             <div className="rewards-section">
-              <h3 className="section-title">Top Contributors</h3>
+              <div className="section-header">
+                <h3 className="section-title">
+                  <i className="fa-solid fa-trophy"></i>
+                  Top Contributors
+                </h3>
+                <div className="section-actions">
+                  <button
+                    className="btn-refresh"
+                    onClick={() => window.location.reload()}
+                  >
+                    <i className="fa-solid fa-refresh"></i>
+                    Refresh
+                  </button>
+                </div>
+              </div>
+
               <div className="contributors-grid">
                 {displayedUsers.length > 0 ? (
                   displayedUsers.map((u, i) => (
-                    <div key={i} className="contributor-card">
+                    <div key={i} className={`contributor-card rank-${i + 1}`}>
+                      <div className="rank-badge">
+                        {i === 0 && <i className="fa-solid fa-crown"></i>}
+                        {i === 1 && <i className="fa-solid fa-medal"></i>}
+                        {i === 2 && <i className="fa-solid fa-award"></i>}
+                        {i > 2 && <span className="rank-number">#{i + 1}</span>}
+                      </div>
                       <div className="contributor-avatar">
-                        <i className="fa-solid fa-user-circle"></i>
+                        <span className="avatar-initials">
+                          {u.fullName
+                            ? u.fullName
+                                .split(" ")
+                                .map((n) => n[0])
+                                .join("")
+                                .toUpperCase()
+                            : "U"}
+                        </span>
                       </div>
                       <div className="contributor-info">
-                        <h4>{u.fullName}</h4>
+                        <h4>{u.fullName || "Unknown User"}</h4>
                         <p className="email">{u.email}</p>
-                        <span className="points-badge">
-                          <i className="fa-solid fa-star"></i>{" "}
-                          {u.numIssueRaised} pts
-                        </span>
+                        <div className="points-section">
+                          <span className="points-badge">
+                            <i className="fa-solid fa-star"></i>
+                            {u.numIssueRaised || 0} pts
+                          </span>
+                          <div className="progress-bar">
+                            <div
+                              className="progress-fill"
+                              style={{
+                                width: `${Math.min(
+                                  ((u.numIssueRaised || 0) /
+                                    Math.max(
+                                      sortedUsers[0]?.numIssueRaised || 1,
+                                      1
+                                    )) *
+                                    100,
+                                  100
+                                )}%`,
+                              }}
+                            ></div>
+                          </div>
+                        </div>
+                        <div className="contributor-stats">
+                          <span className="stat-item">
+                            <i className="fa-solid fa-calendar"></i>
+                            Joined:{" "}
+                            {u.createdAt
+                              ? new Date(u.createdAt).toLocaleDateString()
+                              : "Unknown"}
+                          </span>
+                        </div>
                       </div>
                     </div>
                   ))
                 ) : (
-                  <p className="no-users">No contributors yet.</p>
+                  <div className="no-contributors">
+                    <i className="fa-solid fa-users-slash"></i>
+                    <p>No contributors yet.</p>
+                    <small>
+                      Users will appear here once they start reporting issues.
+                    </small>
+                  </div>
                 )}
+              </div>
+            </div>
+
+            {/* Community Insights */}
+            <div className="community-insights">
+              <h3 className="section-title">
+                <i className="fa-solid fa-chart-pie"></i>
+                Community Insights
+              </h3>
+              <div className="insights-grid">
+                <div className="insight-card">
+                  <h4>Most Active Users</h4>
+                  <div className="active-users">
+                    {sortedUsers.slice(0, 3).map((user, index) => (
+                      <div key={index} className="active-user">
+                        <span className="user-rank">#{index + 1}</span>
+                        <span className="user-name">
+                          {user.fullName || "Unknown"}
+                        </span>
+                        <span className="user-points">
+                          {user.numIssueRaised || 0} pts
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="insight-card">
+                  <h4>Engagement Level</h4>
+                  <div className="engagement-level">
+                    {users.filter((u) => (u.numIssueRaised || 0) > 5).length >
+                    0 ? (
+                      <>
+                        <div className="level-high">
+                          <i className="fa-solid fa-fire"></i>
+                          <span>
+                            High:{" "}
+                            {
+                              users.filter((u) => (u.numIssueRaised || 0) > 5)
+                                .length
+                            }{" "}
+                            users
+                          </span>
+                        </div>
+                        <div className="level-medium">
+                          <i className="fa-solid fa-bolt"></i>
+                          <span>
+                            Medium:{" "}
+                            {
+                              users.filter(
+                                (u) =>
+                                  (u.numIssueRaised || 0) > 0 &&
+                                  (u.numIssueRaised || 0) <= 5
+                              ).length
+                            }{" "}
+                            users
+                          </span>
+                        </div>
+                        <div className="level-low">
+                          <i className="fa-solid fa-leaf"></i>
+                          <span>
+                            Low:{" "}
+                            {
+                              users.filter((u) => (u.numIssueRaised || 0) === 0)
+                                .length
+                            }{" "}
+                            users
+                          </span>
+                        </div>
+                      </>
+                    ) : (
+                      <p>No engagement data available yet.</p>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -260,7 +625,7 @@ export default function Dashboard() {
                   className="btn-view-all"
                   onClick={() => setShowFullLeaderboard((prev) => !prev)}
                 >
-                  <i className="fa-solid fa-users"></i>{" "}
+                  <i className="fa-solid fa-users"></i>
                   {showFullLeaderboard ? "Show Less" : "View Full Leaderboard"}
                 </button>
               </div>
@@ -272,43 +637,276 @@ export default function Dashboard() {
         return (
           <div className="reports-content">
             <div className="content-header">
-              <h2>Reports History</h2>
-              <p>View and manage all generated reports</p>
+              <h2>Reports & Analytics</h2>
+              <p>Generate comprehensive reports and view detailed analytics</p>
             </div>
 
-            <div className="filters-section">
-              <h3>Filter Reports</h3>
-              <div className="filter-options">
-                <div className="filter-group">
-                  <label>Time Period</label>
-                  <select>
-                    <option>Last 7 days</option>
-                    <option>Last 30 days</option>
-                    <option>Last 3 months</option>
-                    <option>Last year</option>
-                    <option>Custom range</option>
-                  </select>
+            {/* Report Generation Section */}
+            <div className="report-generation-section">
+              <h3>
+                <i className="fa-solid fa-chart-line"></i>
+                Generate New Report
+              </h3>
+
+              <div className="report-filters">
+                <div className="filter-row">
+                  <div className="filter-group">
+                    <label>Time Period</label>
+                    <select
+                      value={reportFilters.timePeriod}
+                      onChange={(e) =>
+                        setReportFilters({
+                          ...reportFilters,
+                          timePeriod: e.target.value,
+                        })
+                      }
+                    >
+                      <option value="7days">Last 7 days</option>
+                      <option value="30days">Last 30 days</option>
+                      <option value="3months">Last 3 months</option>
+                      <option value="1year">Last year</option>
+                      <option value="custom">Custom range</option>
+                    </select>
+                  </div>
+
+                  <div className="filter-group">
+                    <label>Category</label>
+                    <select
+                      value={reportFilters.category}
+                      onChange={(e) =>
+                        setReportFilters({
+                          ...reportFilters,
+                          category: e.target.value,
+                        })
+                      }
+                    >
+                      <option value="">All Categories</option>
+                      <option value="Pothole">Pothole</option>
+                      <option value="Street Light">Street Light</option>
+                      <option value="Garbage">Garbage</option>
+                      <option value="Water">Water</option>
+                      <option value="Other">Other</option>
+                    </select>
+                  </div>
+
+                  <div className="filter-group">
+                    <label>Status</label>
+                    <select
+                      value={reportFilters.status}
+                      onChange={(e) =>
+                        setReportFilters({
+                          ...reportFilters,
+                          status: e.target.value,
+                        })
+                      }
+                    >
+                      <option value="">All Status</option>
+                      <option value="pending">Pending</option>
+                      <option value="acknowledged">Acknowledged</option>
+                      <option value="resolved">Resolved</option>
+                      <option value="rejected">Rejected</option>
+                    </select>
+                  </div>
+
+                  <div className="filter-group">
+                    <label>District</label>
+                    <select
+                      value={reportFilters.district}
+                      onChange={(e) =>
+                        setReportFilters({
+                          ...reportFilters,
+                          district: e.target.value,
+                        })
+                      }
+                    >
+                      <option value="">All Districts</option>
+                      <option value="Vellore">Vellore</option>
+                      <option value="Chennai">Chennai</option>
+                      <option value="Coimbatore">Coimbatore</option>
+                      <option value="Madurai">Madurai</option>
+                    </select>
+                  </div>
                 </div>
 
-                <div className="filter-group">
-                  <label>Report Type</label>
-                  <select>
-                    <option>All Reports</option>
-                    <option>Issue Reports</option>
-                    <option>User Activity</option>
-                    <option>System Performance</option>
-                    <option>Financial</option>
-                  </select>
-                </div>
+                <div className="report-actions">
+                  <button
+                    className="btn-generate-report"
+                    onClick={generateReport}
+                    disabled={reportLoading}
+                  >
+                    <i className="fa-solid fa-file-export"></i>
+                    {reportLoading ? "Generating..." : "Generate Report"}
+                  </button>
 
-                <button className="generate-btn">
-                  <i className="fa-solid fa-file-export"></i>
-                  Generate Report
-                </button>
+                  <button
+                    className="btn-export-csv"
+                    onClick={exportReportCSV}
+                    disabled={reportLoading}
+                  >
+                    <i className="fa-solid fa-download"></i>
+                    Export CSV
+                  </button>
+                </div>
               </div>
             </div>
 
-            <div className="reports-history">
+            {/* Report Results */}
+            {reportData && (
+              <div className="report-results">
+                <div className="report-summary">
+                  <h3>
+                    <i className="fa-solid fa-chart-bar"></i>
+                    Report Summary
+                  </h3>
+
+                  <div className="summary-stats">
+                    <div className="summary-card">
+                      <div className="summary-icon total">
+                        <i className="fa-solid fa-list"></i>
+                      </div>
+                      <div className="summary-content">
+                        <h4>{reportData.statistics.total}</h4>
+                        <p>Total Issues</p>
+                      </div>
+                    </div>
+
+                    <div className="summary-card">
+                      <div className="summary-icon pending">
+                        <i className="fa-solid fa-clock"></i>
+                      </div>
+                      <div className="summary-content">
+                        <h4>{reportData.statistics.pending}</h4>
+                        <p>Pending</p>
+                      </div>
+                    </div>
+
+                    <div className="summary-card">
+                      <div className="summary-icon resolved">
+                        <i className="fa-solid fa-check-circle"></i>
+                      </div>
+                      <div className="summary-content">
+                        <h4>{reportData.statistics.resolved}</h4>
+                        <p>Resolved</p>
+                      </div>
+                    </div>
+
+                    <div className="summary-card">
+                      <div className="summary-icon rate">
+                        <i className="fa-solid fa-percentage"></i>
+                      </div>
+                      <div className="summary-content">
+                        <h4>{reportData.statistics.resolutionRate}%</h4>
+                        <p>Resolution Rate</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="breakdown-charts">
+                    <div className="chart-section">
+                      <h4>Category Breakdown</h4>
+                      <div className="category-breakdown">
+                        {Object.entries(reportData.breakdowns.category).map(
+                          ([category, count]) => (
+                            <div key={category} className="breakdown-item">
+                              <span className="category-name">{category}</span>
+                              <div className="breakdown-bar">
+                                <div
+                                  className="breakdown-fill"
+                                  style={{
+                                    width: `${
+                                      (count / reportData.statistics.total) *
+                                      100
+                                    }%`,
+                                  }}
+                                ></div>
+                              </div>
+                              <span className="category-count">{count}</span>
+                            </div>
+                          )
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="chart-section">
+                      <h4>District Breakdown</h4>
+                      <div className="district-breakdown">
+                        {Object.entries(reportData.breakdowns.district).map(
+                          ([district, count]) => (
+                            <div key={district} className="breakdown-item">
+                              <span className="district-name">{district}</span>
+                              <div className="breakdown-bar">
+                                <div
+                                  className="breakdown-fill"
+                                  style={{
+                                    width: `${
+                                      (count / reportData.statistics.total) *
+                                      100
+                                    }%`,
+                                  }}
+                                ></div>
+                              </div>
+                              <span className="district-count">{count}</span>
+                            </div>
+                          )
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="response-time-analysis">
+                    <h4>Response Time Analysis</h4>
+                    <div className="response-stats">
+                      <div className="response-card">
+                        <i className="fa-solid fa-clock"></i>
+                        <span>Average Response Time</span>
+                        <strong>
+                          {reportData.analysis.averageResponseTime} hours
+                        </strong>
+                      </div>
+                      <div className="response-card">
+                        <i className="fa-solid fa-chart-line"></i>
+                        <span>Issues Analyzed</span>
+                        <strong>
+                          {reportData.analysis.responseTime.length} issues
+                        </strong>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="top-contributors">
+                    <h4>Top Contributors</h4>
+                    <div className="contributors-list">
+                      {reportData.contributors
+                        .slice(0, 5)
+                        .map((contributor, index) => (
+                          <div
+                            key={contributor.userId}
+                            className="contributor-item"
+                          >
+                            <div className="contributor-rank">#{index + 1}</div>
+                            <div className="contributor-info">
+                              <span className="contributor-name">
+                                {contributor.fullName}
+                              </span>
+                              <span className="contributor-email">
+                                {contributor.email}
+                              </span>
+                            </div>
+                            <div className="contributor-issues">
+                              <span className="issue-count">
+                                {contributor.issueCount}
+                              </span>
+                              <span className="issue-label">issues</span>
+                            </div>
+                          </div>
+                        ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* <div className="reports-history">
               <h3>Report History</h3>
               <div className="reports-list">
                 <div className="report-item">
@@ -383,7 +981,7 @@ export default function Dashboard() {
                   </div>
                 </div>
               </div>
-            </div>
+            </div> */}
           </div>
         );
       // case "integrations":
@@ -548,263 +1146,263 @@ export default function Dashboard() {
       //       </div>
       //     </div>
       //   );
-      case "monthly":
-        return (
-          <div className="monthly-content">
-            <div className="content-header">
-              <h2>Monthly Reports</h2>
-              <p>Comprehensive analysis of monthly performance metrics</p>
-            </div>
+      // case "monthly":
+      //   return (
+      //     <div className="monthly-content">
+      //       <div className="content-header">
+      //         <h2>Monthly Reports</h2>
+      //         <p>Comprehensive analysis of monthly performance metrics</p>
+      //       </div>
 
-            <div className="reports-overview">
-              <div className="overview-card">
-                <div className="overview-icon">
-                  <i className="fa-solid fa-bug"></i>
-                </div>
-                <div className="overview-details">
-                  <h3>1,247</h3>
-                  <p>Total Issues Reported</p>
-                </div>
-                <div className="overview-trend up">
-                  <i className="fa-solid fa-arrow-up"></i>
-                  <span>12%</span>
-                </div>
-              </div>
+      //       <div className="reports-overview">
+      //         <div className="overview-card">
+      //           <div className="overview-icon">
+      //             <i className="fa-solid fa-bug"></i>
+      //           </div>
+      //           <div className="overview-details">
+      //             <h3>1,247</h3>
+      //             <p>Total Issues Reported</p>
+      //           </div>
+      //           <div className="overview-trend up">
+      //             <i className="fa-solid fa-arrow-up"></i>
+      //             <span>12%</span>
+      //           </div>
+      //         </div>
 
-              <div className="overview-card">
-                <div className="overview-icon">
-                  <i className="fa-solid fa-check-circle"></i>
-                </div>
-                <div className="overview-details">
-                  <h3>894</h3>
-                  <p>Issues Resolved</p>
-                </div>
-                <div className="overview-trend up">
-                  <i className="fa-solid fa-arrow-up"></i>
-                  <span>8%</span>
-                </div>
-              </div>
+      //         <div className="overview-card">
+      //           <div className="overview-icon">
+      //             <i className="fa-solid fa-check-circle"></i>
+      //           </div>
+      //           <div className="overview-details">
+      //             <h3>894</h3>
+      //             <p>Issues Resolved</p>
+      //           </div>
+      //           <div className="overview-trend up">
+      //             <i className="fa-solid fa-arrow-up"></i>
+      //             <span>8%</span>
+      //           </div>
+      //         </div>
 
-              <div className="overview-card">
-                <div className="overview-icon">
-                  <i className="fa-solid fa-clock"></i>
-                </div>
-                <div className="overview-details">
-                  <h3>353</h3>
-                  <p>Pending Issues</p>
-                </div>
-                <div className="overview-trend down">
-                  <i className="fa-solid fa-arrow-down"></i>
-                  <span>5%</span>
-                </div>
-              </div>
+      //         <div className="overview-card">
+      //           <div className="overview-icon">
+      //             <i className="fa-solid fa-clock"></i>
+      //           </div>
+      //           <div className="overview-details">
+      //             <h3>353</h3>
+      //             <p>Pending Issues</p>
+      //           </div>
+      //           <div className="overview-trend down">
+      //             <i className="fa-solid fa-arrow-down"></i>
+      //             <span>5%</span>
+      //           </div>
+      //         </div>
 
-              <div className="overview-card">
-                <div className="overview-icon">
-                  <i className="fa-solid fa-users"></i>
-                </div>
-                <div className="overview-details">
-                  <h3>562</h3>
-                  <p>Active Users</p>
-                </div>
-                <div className="overview-trend up">
-                  <i className="fa-solid fa-arrow-up"></i>
-                  <span>15%</span>
-                </div>
-              </div>
-            </div>
+      //         <div className="overview-card">
+      //           <div className="overview-icon">
+      //             <i className="fa-solid fa-users"></i>
+      //           </div>
+      //           <div className="overview-details">
+      //             <h3>562</h3>
+      //             <p>Active Users</p>
+      //           </div>
+      //           <div className="overview-trend up">
+      //             <i className="fa-solid fa-arrow-up"></i>
+      //             <span>15%</span>
+      //           </div>
+      //         </div>
+      //       </div>
 
-            <div className="monthly-reports">
-              <div className="reports-header">
-                <h3>Monthly Reports Archive</h3>
-                <div className="time-filter">
-                  <select>
-                    <option>All Time</option>
-                    <option>2023</option>
-                    <option>2022</option>
-                    <option>2021</option>
-                  </select>
-                </div>
-              </div>
+      //       <div className="monthly-reports">
+      //         <div className="reports-header">
+      //           <h3>Monthly Reports Archive</h3>
+      //           <div className="time-filter">
+      //             <select>
+      //               <option>All Time</option>
+      //               <option>2023</option>
+      //               <option>2022</option>
+      //               <option>2021</option>
+      //             </select>
+      //           </div>
+      //         </div>
 
-              <div className="reports-list">
-                <div className="monthly-report-item">
-                  <div className="report-date">
-                    <span className="month">September</span>
-                    <span className="year">2023</span>
-                  </div>
-                  <div className="report-info">
-                    <h4>September 2023 Performance Report</h4>
-                    <div className="report-stats">
-                      <span className="stat">
-                        <i className="fa-solid fa-bug"></i>
-                        324 issues
-                      </span>
-                      <span className="stat">
-                        <i className="fa-solid fa-check"></i>
-                        72% resolved
-                      </span>
-                      <span className="stat">
-                        <i className="fa-solid fa-user"></i>
-                        128 new users
-                      </span>
-                    </div>
-                  </div>
-                  <div className="report-actions">
-                    <button className="action-btn view">
-                      <i className="fa-solid fa-eye"></i>
-                    </button>
-                    <button className="action-btn download">
-                      <i className="fa-solid fa-download"></i>
-                    </button>
-                    <button className="action-btn share">
-                      <i className="fa-solid fa-share-nodes"></i>
-                    </button>
-                  </div>
-                </div>
+      //         <div className="reports-list">
+      //           <div className="monthly-report-item">
+      //             <div className="report-date">
+      //               <span className="month">September</span>
+      //               <span className="year">2023</span>
+      //             </div>
+      //             <div className="report-info">
+      //               <h4>September 2023 Performance Report</h4>
+      //               <div className="report-stats">
+      //                 <span className="stat">
+      //                   <i className="fa-solid fa-bug"></i>
+      //                   324 issues
+      //                 </span>
+      //                 <span className="stat">
+      //                   <i className="fa-solid fa-check"></i>
+      //                   72% resolved
+      //                 </span>
+      //                 <span className="stat">
+      //                   <i className="fa-solid fa-user"></i>
+      //                   128 new users
+      //                 </span>
+      //               </div>
+      //             </div>
+      //             <div className="report-actions">
+      //               <button className="action-btn view">
+      //                 <i className="fa-solid fa-eye"></i>
+      //               </button>
+      //               <button className="action-btn download">
+      //                 <i className="fa-solid fa-download"></i>
+      //               </button>
+      //               <button className="action-btn share">
+      //                 <i className="fa-solid fa-share-nodes"></i>
+      //               </button>
+      //             </div>
+      //           </div>
 
-                <div className="monthly-report-item">
-                  <div className="report-date">
-                    <span className="month">August</span>
-                    <span className="year">2023</span>
-                  </div>
-                  <div className="report-info">
-                    <h4>August 2023 Performance Report</h4>
-                    <div className="report-stats">
-                      <span className="stat">
-                        <i className="fa-solid fa-bug"></i>
-                        298 issues
-                      </span>
-                      <span className="stat">
-                        <i className="fa-solid fa-check"></i>
-                        68% resolved
-                      </span>
-                      <span className="stat">
-                        <i className="fa-solid fa-user"></i>
-                        94 new users
-                      </span>
-                    </div>
-                  </div>
-                  <div className="report-actions">
-                    <button className="action-btn view">
-                      <i className="fa-solid fa-eye"></i>
-                    </button>
-                    <button className="action-btn download">
-                      <i className="fa-solid fa-download"></i>
-                    </button>
-                    <button className="action-btn share">
-                      <i className="fa-solid fa-share-nodes"></i>
-                    </button>
-                  </div>
-                </div>
+      //           <div className="monthly-report-item">
+      //             <div className="report-date">
+      //               <span className="month">August</span>
+      //               <span className="year">2023</span>
+      //             </div>
+      //             <div className="report-info">
+      //               <h4>August 2023 Performance Report</h4>
+      //               <div className="report-stats">
+      //                 <span className="stat">
+      //                   <i className="fa-solid fa-bug"></i>
+      //                   298 issues
+      //                 </span>
+      //                 <span className="stat">
+      //                   <i className="fa-solid fa-check"></i>
+      //                   68% resolved
+      //                 </span>
+      //                 <span className="stat">
+      //                   <i className="fa-solid fa-user"></i>
+      //                   94 new users
+      //                 </span>
+      //               </div>
+      //             </div>
+      //             <div className="report-actions">
+      //               <button className="action-btn view">
+      //                 <i className="fa-solid fa-eye"></i>
+      //               </button>
+      //               <button className="action-btn download">
+      //                 <i className="fa-solid fa-download"></i>
+      //               </button>
+      //               <button className="action-btn share">
+      //                 <i className="fa-solid fa-share-nodes"></i>
+      //               </button>
+      //             </div>
+      //           </div>
 
-                <div className="monthly-report-item">
-                  <div className="report-date">
-                    <span className="month">July</span>
-                    <span className="year">2023</span>
-                  </div>
-                  <div className="report-info">
-                    <h4>July 2023 Performance Report</h4>
-                    <div className="report-stats">
-                      <span className="stat">
-                        <i className="fa-solid fa-bug"></i>
-                        275 issues
-                      </span>
-                      <span className="stat">
-                        <i className="fa-solid fa-check"></i>
-                        65% resolved
-                      </span>
-                      <span className="stat">
-                        <i className="fa-solid fa-user"></i>
-                        87 new users
-                      </span>
-                    </div>
-                  </div>
-                  <div className="report-actions">
-                    <button className="action-btn view">
-                      <i className="fa-solid fa-eye"></i>
-                    </button>
-                    <button className="action-btn download">
-                      <i className="fa-solid fa-download"></i>
-                    </button>
-                    <button className="action-btn share">
-                      <i className="fa-solid fa-share-nodes"></i>
-                    </button>
-                  </div>
-                </div>
+      //           <div className="monthly-report-item">
+      //             <div className="report-date">
+      //               <span className="month">July</span>
+      //               <span className="year">2023</span>
+      //             </div>
+      //             <div className="report-info">
+      //               <h4>July 2023 Performance Report</h4>
+      //               <div className="report-stats">
+      //                 <span className="stat">
+      //                   <i className="fa-solid fa-bug"></i>
+      //                   275 issues
+      //                 </span>
+      //                 <span className="stat">
+      //                   <i className="fa-solid fa-check"></i>
+      //                   65% resolved
+      //                 </span>
+      //                 <span className="stat">
+      //                   <i className="fa-solid fa-user"></i>
+      //                   87 new users
+      //                 </span>
+      //               </div>
+      //             </div>
+      //             <div className="report-actions">
+      //               <button className="action-btn view">
+      //                 <i className="fa-solid fa-eye"></i>
+      //               </button>
+      //               <button className="action-btn download">
+      //                 <i className="fa-solid fa-download"></i>
+      //               </button>
+      //               <button className="action-btn share">
+      //                 <i className="fa-solid fa-share-nodes"></i>
+      //               </button>
+      //             </div>
+      //           </div>
 
-                <div className="monthly-report-item">
-                  <div className="report-date">
-                    <span className="month">June</span>
-                    <span className="year">2023</span>
-                  </div>
-                  <div className="report-info">
-                    <h4>Q2 2023 Summary Report</h4>
-                    <div className="report-stats">
-                      <span className="stat">
-                        <i className="fa-solid fa-bug"></i>
-                        842 issues
-                      </span>
-                      <span className="stat">
-                        <i className="fa-solid fa-check"></i>
-                        68% resolved
-                      </span>
-                      <span className="stat">
-                        <i className="fa-solid fa-user"></i>
-                        289 new users
-                      </span>
-                    </div>
-                  </div>
-                  <div className="report-actions">
-                    <button className="action-btn view">
-                      <i className="fa-solid fa-eye"></i>
-                    </button>
-                    <button className="action-btn download">
-                      <i className="fa-solid fa-download"></i>
-                    </button>
-                    <button className="action-btn share">
-                      <i className="fa-solid fa-share-nodes"></i>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
+      //           <div className="monthly-report-item">
+      //             <div className="report-date">
+      //               <span className="month">June</span>
+      //               <span className="year">2023</span>
+      //             </div>
+      //             <div className="report-info">
+      //               <h4>Q2 2023 Summary Report</h4>
+      //               <div className="report-stats">
+      //                 <span className="stat">
+      //                   <i className="fa-solid fa-bug"></i>
+      //                   842 issues
+      //                 </span>
+      //                 <span className="stat">
+      //                   <i className="fa-solid fa-check"></i>
+      //                   68% resolved
+      //                 </span>
+      //                 <span className="stat">
+      //                   <i className="fa-solid fa-user"></i>
+      //                   289 new users
+      //                 </span>
+      //               </div>
+      //             </div>
+      //             <div className="report-actions">
+      //               <button className="action-btn view">
+      //                 <i className="fa-solid fa-eye"></i>
+      //               </button>
+      //               <button className="action-btn download">
+      //                 <i className="fa-solid fa-download"></i>
+      //               </button>
+      //               <button className="action-btn share">
+      //                 <i className="fa-solid fa-share-nodes"></i>
+      //               </button>
+      //             </div>
+      //           </div>
+      //         </div>
+      //       </div>
 
-            <div className="report-generation">
-              <h3>Generate New Report</h3>
-              <div className="generation-options">
-                <div className="generation-card">
-                  <div className="generation-icon">
-                    <i className="fa-solid fa-calendar"></i>
-                  </div>
-                  <h4>Monthly Report</h4>
-                  <p>Generate a comprehensive monthly performance report</p>
-                  <button className="btn-generate">Generate</button>
-                </div>
+      //       <div className="report-generation">
+      //         <h3>Generate New Report</h3>
+      //         <div className="generation-options">
+      //           <div className="generation-card">
+      //             <div className="generation-icon">
+      //               <i className="fa-solid fa-calendar"></i>
+      //             </div>
+      //             <h4>Monthly Report</h4>
+      //             <p>Generate a comprehensive monthly performance report</p>
+      //             <button className="btn-generate">Generate</button>
+      //           </div>
 
-                <div className="generation-card">
-                  <div className="generation-icon">
-                    <i className="fa-solid fa-chart-pie"></i>
-                  </div>
-                  <h4>Custom Report</h4>
-                  <p>
-                    Create a custom report with specific metrics and time range
-                  </p>
-                  <button className="btn-generate">Create</button>
-                </div>
+      //           <div className="generation-card">
+      //             <div className="generation-icon">
+      //               <i className="fa-solid fa-chart-pie"></i>
+      //             </div>
+      //             <h4>Custom Report</h4>
+      //             <p>
+      //               Create a custom report with specific metrics and time range
+      //             </p>
+      //             <button className="btn-generate">Create</button>
+      //           </div>
 
-                <div className="generation-card">
-                  <div className="generation-icon">
-                    <i className="fa-solid fa-download"></i>
-                  </div>
-                  <h4>Export Data</h4>
-                  <p>Export raw data for analysis in external tools</p>
-                  <button className="btn-generate">Export</button>
-                </div>
-              </div>
-            </div>
-          </div>
-        );
+      //           <div className="generation-card">
+      //             <div className="generation-icon">
+      //               <i className="fa-solid fa-download"></i>
+      //             </div>
+      //             <h4>Export Data</h4>
+      //             <p>Export raw data for analysis in external tools</p>
+      //             <button className="btn-generate">Export</button>
+      //           </div>
+      //         </div>
+      //       </div>
+      //     </div>
+      //   );
       case "map":
         return <MapSection selectedIssue={selectedIssueForMap} />;
       default:
@@ -829,6 +1427,47 @@ export default function Dashboard() {
         }`}
       >
         <div className="company">ProbMap</div>
+
+        {/* Admin Profile Section */}
+        {adminProfile && (
+          <div className="admin-profile-section">
+            <div className="profile-avatar" onClick={toggleProfileDropdown}>
+              <span className="avatar-initials">
+                {getInitials(adminProfile.fullName)}
+              </span>
+            </div>
+            <div className="profile-info">
+              <div className="profile-name">{adminProfile.fullName}</div>
+              <div className="profile-role">{adminProfile.role}</div>
+              <div className="profile-city">{adminProfile.city}</div>
+            </div>
+
+            {showProfileDropdown && (
+              <div className="profile-dropdown">
+                <div className="dropdown-info">
+                  <div className="info-item">
+                    <span className="info-label">Email:</span>
+                    <span className="info-value">{adminProfile.email}</span>
+                  </div>
+                  <div className="info-item">
+                    <span className="info-label">City:</span>
+                    <span className="info-value">{adminProfile.city}</span>
+                  </div>
+                  <div className="info-item">
+                    <span className="info-label">Role:</span>
+                    <span className="info-value">{adminProfile.role}</span>
+                  </div>
+                  <div className="info-item">
+                    <span className="info-label">Joined:</span>
+                    <span className="info-value">
+                      {new Date(adminProfile.createdAt).toLocaleDateString()}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
         <nav>
           <ul>
             <li>
@@ -933,11 +1572,11 @@ export default function Dashboard() {
           </ul>
 
           {/* Logout Button */}
-          <div className="bottom-links">
-            <a className="nav-link" href="#">
+          <div className="bottom-links" style={{ paddingTop: "120px" }}>
+            {/* <a className="nav-link" href="#">
               <i className="fa-solid fa-gear"></i>
               <span>Settings</span>
-            </a>
+            </a> */}
             <a className="nav-link" href="#" onClick={handleLogout}>
               <i className="fa-solid fa-arrow-right-from-bracket"></i>
               <span>Sign out</span>
@@ -955,9 +1594,9 @@ export default function Dashboard() {
       )}
 
       <main className="main">
-        <header className="navbar">
+        {/* <header className="navbar">
           <div className="company">ProbMap</div>
-        </header>
+        </header> */}
 
         <div className="content-area">{renderContent()}</div>
       </main>
@@ -971,9 +1610,9 @@ function IssueCard({ issue, onUpdateStatus, onShowOnMap }) {
   const [message, setMessage] = useState("");
   const [localStatus, setLocalStatus] = useState(issue.status || "pending");
 
-  // Find user info from Dashboard users array (window.users is a hack, ideally pass as prop)
-  let userInfo = null;
-  if (window && window.users && Array.isArray(window.users)) {
+  // Use populated user info from backend, fallback to window.users if needed
+  let userInfo = issue.userInfo;
+  if (!userInfo && window && window.users && Array.isArray(window.users)) {
     userInfo = window.users.find((u) => u._id === issue.userId);
   }
 
@@ -1068,6 +1707,18 @@ function IssueCard({ issue, onUpdateStatus, onShowOnMap }) {
               <div className="user-email">
                 {userInfo?.email || issue.userId}
               </div>
+              {userInfo?.phone && (
+                <div className="user-phone">
+                  <i className="fa-solid fa-phone"></i>
+                  {userInfo.phone}
+                </div>
+              )}
+              {userInfo?.joinedDate && (
+                <div className="user-joined">
+                  <i className="fa-solid fa-calendar-plus"></i>
+                  Joined: {new Date(userInfo.joinedDate).toLocaleDateString()}
+                </div>
+              )}
             </div>
           </div>
 

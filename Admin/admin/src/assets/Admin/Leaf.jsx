@@ -50,7 +50,7 @@ const MapSection = ({ selectedIssue }) => {
   useEffect(() => {
     const fetchIssues = async () => {
       try {
-        const res = await fetch(`http://localhost:5000/admin/city-issues`, {
+        const res = await fetch(`http://localhost:5000/admin/map-issues`, {
           credentials: "include",
         });
         if (!res.ok) throw new Error("Failed to fetch issues");
@@ -194,15 +194,86 @@ const MapSection = ({ selectedIssue }) => {
 
               return (
                 <Marker key={issue._id} position={coords} icon={markerIcon}>
-                  <Popup>
-                    <h3>{issue.title}</h3>
-                    <p>{issue.description}</p>
-                    <span>Status: {issue.status}</span>
-                    <span>Importance: {issue.importance}</span>
-                    <p>
-                      Reported: {new Date(issue.createdAt).toLocaleDateString()}
-                    </p>
-                    {issue.cost_estimate && <p>Cost: ₹{issue.cost_estimate}</p>}
+                  <Popup maxWidth={300} className="enhanced-popup">
+                    <div className="popup-content">
+                      <div className="popup-header">
+                        <h3>{issue.title}</h3>
+                        <span className={`status-badge status-${issue.status}`}>
+                          {issue.status.charAt(0).toUpperCase() +
+                            issue.status.slice(1)}
+                        </span>
+                      </div>
+
+                      <div className="popup-body">
+                        <p className="description">{issue.description}</p>
+
+                        <div className="popup-details">
+                          <div className="detail-row">
+                            <i className="fa-solid fa-layer-group"></i>
+                            <span>
+                              <strong>Category:</strong> {issue.category}
+                            </span>
+                          </div>
+
+                          <div className="detail-row">
+                            <i className="fa-solid fa-exclamation-triangle"></i>
+                            <span>
+                              <strong>Importance:</strong> {issue.importance}
+                            </span>
+                          </div>
+
+                          <div className="detail-row">
+                            <i className="fa-solid fa-map-marker-alt"></i>
+                            <span>
+                              <strong>District:</strong> {issue.district}
+                            </span>
+                          </div>
+
+                          {issue.cost_estimate && (
+                            <div className="detail-row">
+                              <i className="fa-solid fa-coins"></i>
+                              <span>
+                                <strong>Cost:</strong> ₹{issue.cost_estimate}
+                              </span>
+                            </div>
+                          )}
+
+                          <div className="detail-row">
+                            <i className="fa-solid fa-calendar"></i>
+                            <span>
+                              <strong>Reported:</strong>{" "}
+                              {new Date(issue.createdAt).toLocaleDateString()}
+                            </span>
+                          </div>
+
+                          {issue.userInfo && (
+                            <div className="detail-row">
+                              <i className="fa-solid fa-user"></i>
+                              <span>
+                                <strong>Reported by:</strong>{" "}
+                                {issue.userInfo.fullName}
+                              </span>
+                            </div>
+                          )}
+
+                          {issue.adminResponse && (
+                            <div className="admin-response">
+                              <i className="fa-solid fa-shield-halved"></i>
+                              <div>
+                                <strong>Admin Response:</strong>
+                                <p>{issue.adminResponse.message}</p>
+                                <small>
+                                  Responded:{" "}
+                                  {new Date(
+                                    issue.adminResponse.respondedAt
+                                  ).toLocaleDateString()}
+                                </small>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
                   </Popup>
                 </Marker>
               );

@@ -1,12 +1,13 @@
 import express from "express";
 import AdminController from "../controllers/adminController.js";
+import ReportsController from "../controllers/reportsController.js";
 import adminAuth from "../middlewares/adminAuth.js";
 import firebaseAuth from "../middlewares/firebaseAuth.js";
 import adminAuthController from "../controllers/adminAuthController.js";
 
 const router = express.Router();
 
-router.post("/login",adminAuthController.login);
+router.post("/login", adminAuthController.login);
 router.post("/logout", adminAuth.verifyCookie, adminAuthController.login);
 
 router.get(
@@ -22,9 +23,57 @@ router.patch(
 );
 
 router.get("/users", adminAuth.verifyCookie, AdminController.getAllUsers);
-router.get("/pendingIssues",adminAuth.verifyCookie,AdminController.getAllPendingIssues);
-router.get("/resolvedIssues",adminAuth.verifyCookie,AdminController.getAllResolved);
-router.get("/acknowledgedIssues",adminAuth.verifyCookie,AdminController.getAllAcknowledged);
-router.get("/rejectedIssues",adminAuth.verifyCookie,AdminController.getAllRejected);
+router.get(
+  "/pendingIssues",
+  adminAuth.verifyCookie,
+  AdminController.getAllPendingIssues
+);
+router.get(
+  "/resolvedIssues",
+  adminAuth.verifyCookie,
+  AdminController.getAllResolved
+);
+router.get(
+  "/acknowledgedIssues",
+  adminAuth.verifyCookie,
+  AdminController.getAllAcknowledged
+);
+router.get(
+  "/rejectedIssues",
+  adminAuth.verifyCookie,
+  AdminController.getAllRejected
+);
+
+// New routes for statistics and enhanced functionality
+router.get(
+  "/statistics",
+  adminAuth.verifyCookie,
+  AdminController.getIssueStatistics
+);
+router.get(
+  "/map-issues",
+  adminAuth.verifyCookie,
+  AdminController.getAllIssuesForMap
+);
+
+// Reports routes
+router.post(
+  "/reports/generate",
+  adminAuth.verifyCookie,
+  ReportsController.generateReport
+);
+router.get(
+  "/reports/filter-options",
+  adminAuth.verifyCookie,
+  ReportsController.getFilterOptions
+);
+router.post(
+  "/reports/export-csv",
+  adminAuth.verifyCookie,
+  ReportsController.exportReportCSV
+);
+
+// Admin profile route
+router.get("/profile", adminAuth.verifyCookie, AdminController.getAdminProfile);
 
 export default router;

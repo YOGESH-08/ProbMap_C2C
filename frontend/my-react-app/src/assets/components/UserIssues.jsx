@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import Acard from "./Acard";
+import EnhancedAcard from "./EnhancedAcard";
 
 const UserIssues = ({ filterStatus }) => {
   const [issues, setIssues] = useState([]);
@@ -56,28 +56,38 @@ const UserIssues = ({ filterStatus }) => {
   if (loading) return <p>Loading your issues...</p>;
   if (error) return <p style={{ color: "red" }}>{error}</p>;
   if (issues.length === 0)
-    return <p style={{paddingTop:"15px"}}>No {filterStatus === "pending" ? "pending" : "resolved/rejected/acknowledged"} issues found.</p>;
+    return (
+      <p style={{ paddingTop: "15px" }}>
+        No{" "}
+        {filterStatus === "pending"
+          ? "pending"
+          : "resolved/rejected/acknowledged"}{" "}
+        issues found.
+      </p>
+    );
 
   return (
-    <div className="space-y-6">
+    <div className="issues-container">
       {issues.map((issue) => (
-        <Acard
-  key={issue._id}
-  details={{
-    id: issue._id,
-    name: issue.title,
-    location: issue.location,
-    description: issue.description,
-    adminDescription: issue.adminResponse?.message || "Pending",
-    severity: issue.importance,
-    status: issue.status,
-    imageUrl: issue.imageUrl,      
-    district: issue.district || "", 
-  }}
-  onDelete={() => deleteIssue(issue._id)}
-/>
-
-
+        <EnhancedAcard
+          key={issue._id}
+          details={{
+            id: issue._id,
+            name: issue.title,
+            location: issue.location,
+            description: issue.description,
+            adminDescription: issue.adminResponse?.message || "Pending",
+            severity: issue.importance,
+            status: issue.status,
+            imageUrl: issue.imageUrl,
+            district: issue.district || "",
+            createdAt: issue.createdAt,
+            respondedAt: issue.adminResponse?.respondedAt,
+            category: issue.category,
+            userInfo: issue.userInfo,
+          }}
+          onDelete={() => deleteIssue(issue._id)}
+        />
       ))}
     </div>
   );

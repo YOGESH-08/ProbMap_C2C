@@ -65,13 +65,12 @@ function LocationPicker({ setLocation, setAddress, setDistrict, setFormData }) {
         setDistrict(dist);
 
         // ✅ Also store directly in formData
-        setFormData(prev => ({
-  ...prev,
-  location: coords,
-  district: extractDistrict(data.address),
-  address: data.display_name,
-}));
-
+        setFormData((prev) => ({
+          ...prev,
+          location: coords,
+          district: dist,
+          address: addr,
+        }));
       } catch {
         setAddress("Unable to fetch address");
         setDistrict("Unknown");
@@ -209,7 +208,7 @@ const handleFileChange = (e) => {
 
       if (!response.ok) throw new Error("Image analysis failed");
       return await response.json();
-
+      console.log("analysis: ",)
     } catch (error) {
       console.error("Error analyzing image:", error);
       return {
@@ -236,6 +235,7 @@ const handleFileChange = (e) => {
 }
       const analysis = await analyzeImage(formData.photo);
       setAnalysisResult(analysis);
+
       if (!analysis.is_public_property) {
         const shouldContinue = window.confirm(
           "This image doesn't appear to show public property damage. Continue?"
@@ -244,8 +244,7 @@ const handleFileChange = (e) => {
       }
 
       const payload = new FormData();
-      console.log(analysis);
-      payload.append("title", analysis.category);
+      payload.append("title", analysis.category || "Issue");
       payload.append("description", formData.description);
       payload.append("category", analysis.category || "Others");
       payload.append(
@@ -460,11 +459,8 @@ const handleFileChange = (e) => {
   setDistrict={setDistrict} 
   setFormData={setFormData}
 />{formData.location && (
-  <Marker position={[formData.location.lat, formData.location.lng]}>
-    <Popup>{formData.address || "Unknown address"}</Popup>
-  </Marker>
+  <Marker position={[formData.location.lat, formData.location.lng]} />
 )}
-
 
 
             </MapContainer>
