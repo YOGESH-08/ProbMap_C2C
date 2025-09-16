@@ -116,6 +116,13 @@ function Navbar() {
           >
             History
           </Link>
+          <Link
+            to="/volunteer"
+            className="nav-link"
+            onClick={() => setIsMenuOpen(false)}
+          >
+            Volunteer
+          </Link>
         </div>
 
         <div className="right-nav">

@@ -25,13 +25,28 @@ const issueSchema = new mongoose.Schema(
       default: "pending",
     },
 
-    severity: { type: String }, 
+    severity: { type: String },
 
     userId: { type: String, required: true },
 
     adminResponse: {
       message: { type: String },
       respondedAt: { type: Date },
+      resolvedProofUrl: { type: String },
+    },
+
+    // Volunteer resolution claim
+    volunteerClaim: {
+      status: {
+        type: String,
+        enum: ["none", "submitted", "approved", "rejected"],
+        default: "none",
+      },
+      volunteerId: { type: String }, // firebaseUID of volunteer
+      submittedAt: { type: Date },
+      reviewedAt: { type: Date },
+      message: { type: String },
+      proofImageUrl: { type: String },
     },
   },
   { timestamps: true }

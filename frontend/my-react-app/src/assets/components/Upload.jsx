@@ -2,7 +2,13 @@
 import React, { useState, useRef, useEffect } from "react";
 import "../Styles/upload.css";
 import TextField from "@mui/material/TextField";
-import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
+import {
+  MapContainer,
+  TileLayer,
+  Marker,
+  Popup,
+  useMapEvents,
+} from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import CameraAltIcon from "@mui/icons-material/CameraAlt";
@@ -12,7 +18,7 @@ import Webcam from "react-webcam";
 const BACKEND_URL =
   process.env.NODE_ENV === "production"
     ? "https://your-backend-app.railway.app"
-    : "http://localhost:8000"; 
+    : "http://localhost:8000";
 
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -34,13 +40,12 @@ const extractDistrict = (addressObj) => {
     addressObj.town ||
     addressObj.village ||
     addressObj.hamlet ||
-    addressObj.suburb ||  
-    addressObj.city || 
+    addressObj.suburb ||
+    addressObj.city ||
     addressObj.state ||
     "Unknown"
   );
 };
-
 
 // Map click handler
 // ...imports remain the same
@@ -89,16 +94,15 @@ export default function Upload() {
   const [analysisResult, setAnalysisResult] = useState(null);
   const [showCamera, setShowCamera] = useState(false);
 
-const [formData, setFormData] = useState({
-  problemType: "",
-  description: "",
-  photo: null,
-  location: null,
-  district: "",
-  address: "",
-  adminMessage:"",
-});
-
+  const [formData, setFormData] = useState({
+    problemType: "",
+    description: "",
+    photo: null,
+    location: null,
+    district: "",
+    address: "",
+    adminMessage: "",
+  });
 
   const [preview, setPreview] = useState(null);
   const fileInputRef = useRef(null);
@@ -123,16 +127,16 @@ const [formData, setFormData] = useState({
       async (pos) => {
         const coords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
         setLocation(coords);
-setFormData((prev) => ({
-  ...prev,
-  location: coords,
-}));
+        setFormData((prev) => ({
+          ...prev,
+          location: coords,
+        }));
         try {
           const res = await fetch(
             `https://nominatim.openstreetmap.org/reverse?format=json&lat=${coords.lat}&lon=${coords.lng}&accept-language=en`
           );
           const data = await res.json();
-          console.log("Addressssss",data.display_name);
+          console.log("Addressssss", data.display_name);
           setAddress(data.display_name);
           setDistrict(extractDistrict(data.address));
         } catch {
@@ -154,19 +158,18 @@ setFormData((prev) => ({
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-const handleFileChange = (e) => {
-  const file = e.target.files?.[0];
-  if (!file) return;
+  const handleFileChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-  // Revoke old preview if exists
-  if (preview) URL.revokeObjectURL(preview);
+    // Revoke old preview if exists
+    if (preview) URL.revokeObjectURL(preview);
 
-  const blobUrl = URL.createObjectURL(file);
-  setFormData(prev => ({ ...prev, photo: file }));
-  setPreview(blobUrl);
-  setAnalysisResult(null);
-};
-
+    const blobUrl = URL.createObjectURL(file);
+    setFormData((prev) => ({ ...prev, photo: file }));
+    setPreview(blobUrl);
+    setAnalysisResult(null);
+  };
 
   const handleCameraClick = () => setShowCamera(true);
 
@@ -176,7 +179,9 @@ const handleFileChange = (e) => {
       if (!imageSrc) return;
       const res = await fetch(imageSrc);
       const blob = await res.blob();
-      const file = new File([blob], "camera-capture.jpg", { type: "image/jpeg" });
+      const file = new File([blob], "camera-capture.jpg", {
+        type: "image/jpeg",
+      });
 
       if (preview && preview.startsWith("blob:")) {
         try {
@@ -208,7 +213,7 @@ const handleFileChange = (e) => {
 
       if (!response.ok) throw new Error("Image analysis failed");
       return await response.json();
-      console.log("analysis: ",)
+      console.log("analysis: ");
     } catch (error) {
       console.error("Error analyzing image:", error);
       return {
@@ -230,9 +235,9 @@ const handleFileChange = (e) => {
         return;
       }
       if (!formData.location) {
-  alert("Please select or use your location!");
-  return;
-}
+        alert("Please select or use your location!");
+        return;
+      }
       const analysis = await analyzeImage(formData.photo);
       setAnalysisResult(analysis);
 
@@ -249,12 +254,18 @@ const handleFileChange = (e) => {
       payload.append("category", analysis.category || "Others");
       payload.append(
         "location",
-        JSON.stringify({ lat: formData.location.lat, lng: formData.location.lng })
+        JSON.stringify({
+          lat: formData.location.lat,
+          lng: formData.location.lng,
+        })
       );
       payload.append("district", district || "Unknown");
       payload.append("importance", analysis.importance || "Medium");
       payload.append("cost_estimate", analysis.cost_estimate || "0");
-      payload.append("is_public_property", analysis.is_public_property ? "yes" : "no");
+      payload.append(
+        "is_public_property",
+        analysis.is_public_property ? "yes" : "no"
+      );
       payload.append("image", formData.photo);
       const res = await fetch(`http://localhost:5000/issue`, {
         method: "POST",
@@ -262,7 +273,7 @@ const handleFileChange = (e) => {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
         body: payload,
-        credentials:"include",
+        credentials: "include",
       });
 
       if (!res.ok) {
@@ -275,7 +286,9 @@ const handleFileChange = (e) => {
 
       setFormData({ problemType: "", description: "", photo: null });
       if (preview && preview.startsWith("blob:")) {
-        try { URL.revokeObjectURL(preview); } catch {}
+        try {
+          URL.revokeObjectURL(preview);
+        } catch {}
       }
       setPreview(null);
       setLocation(null);
@@ -298,7 +311,6 @@ const handleFileChange = (e) => {
     try {
       const analysis = await analyzeImage(formData.photo);
       setAnalysisResult(analysis);
-
     } catch (error) {
       console.error(error);
       alert("Error analyzing image: " + error.message);
@@ -307,12 +319,18 @@ const handleFileChange = (e) => {
     }
   };
 
-  const videoConstraints = { width: 1280, height: 720, facingMode: "environment" };
+  const videoConstraints = {
+    width: 1280,
+    height: 720,
+    facingMode: "environment",
+  };
 
   return (
     <div className="body123">
       <div className="container">
-        <h1>REPORT PUBLIC PROPERTY <span >DAMAGE</span></h1>
+        <h1>
+          REPORT PUBLIC PROPERTY <span>DAMAGE</span>
+        </h1>
 
         <label style={{ marginTop: 12 }}>Description:</label>
         <TextField
@@ -326,7 +344,9 @@ const handleFileChange = (e) => {
             width: "90%",
             "& .MuiInputBase-root": { color: "grey" },
             "& .MuiInput-underline:before": { borderBottomColor: "gray" },
-            "& .MuiInput-underline:hover:before": { borderBottomColor: "white" },
+            "& .MuiInput-underline:hover:before": {
+              borderBottomColor: "white",
+            },
             "& .MuiInput-underline:after": { borderBottomColor: "white" },
             marginTop: 1,
           }}
@@ -336,26 +356,46 @@ const handleFileChange = (e) => {
         {showCamera && (
           <div
             style={{
-              position: "fixed", top: 0, left: 0, right: 0, bottom: 0,
-              backgroundColor: "rgba(0,0,0,0.9)", zIndex: 1000,
-              display: "flex", flexDirection: "column",
-              alignItems: "center", justifyContent: "center",
+              position: "fixed",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: "rgba(0,0,0,0.9)",
+              zIndex: 1000,
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
             }}
           >
             <Webcam
-              audio={false} ref={webcamRef} screenshotFormat="image/jpeg"
-              videoConstraints={videoConstraints} style={{ width: "100%", maxWidth: 500, borderRadius: 10 }}
+              audio={false}
+              ref={webcamRef}
+              screenshotFormat="image/jpeg"
+              videoConstraints={videoConstraints}
+              style={{ width: "100%", maxWidth: 500, borderRadius: 10 }}
             />
             <div style={{ marginTop: 20, display: "flex", gap: 10 }}>
               <button
                 onClick={handleCapture}
-                style={{ padding: "10px 20px", backgroundColor: "#4CAF50", border: "none", borderRadius: 5 }}
+                style={{
+                  padding: "10px 20px",
+                  backgroundColor: "#4CAF50",
+                  border: "none",
+                  borderRadius: 5,
+                }}
               >
                 📸 Capture
               </button>
               <button
                 onClick={handleCloseCamera}
-                style={{ padding: "10px 20px", backgroundColor: "#f44336", border: "none", borderRadius: 5 }}
+                style={{
+                  padding: "10px 20px",
+                  backgroundColor: "#f44336",
+                  border: "none",
+                  borderRadius: 5,
+                }}
               >
                 ❌ Close
               </button>
@@ -372,110 +412,197 @@ const handleFileChange = (e) => {
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              style={{ padding: "10px 15px", backgroundColor: "#2196F3", border: "none", borderRadius: 5 }}
+              style={{
+                padding: "10px 15px",
+                backgroundColor: "#2196F3",
+                border: "none",
+                borderRadius: 5,
+              }}
             >
               📁 Upload Image
             </button>
             <button
               type="button"
               onClick={handleCameraClick}
-              style={{ padding: "10px 15px", backgroundColor: "#FF9800", border: "none", borderRadius: 5, display: "flex", alignItems: "center", gap: 5 }}
+              style={{
+                padding: "10px 15px",
+                backgroundColor: "#FF9800",
+                border: "none",
+                borderRadius: 5,
+                display: "flex",
+                alignItems: "center",
+                gap: 5,
+              }}
             >
-              <CameraAltIcon style={{ fontSize: 18, color: "black" }} /> Open Camera
+              <CameraAltIcon style={{ fontSize: 18, color: "black" }} /> Open
+              Camera
             </button>
           </div>
-          <input type="file" accept="image/*" ref={fileInputRef} style={{ display: "none" }} onChange={handleFileChange} />
+          <input
+            type="file"
+            accept="image/*"
+            ref={fileInputRef}
+            style={{ display: "none" }}
+            onChange={handleFileChange}
+          />
         </div>
 
         {/* Preview */}
         {preview && (
-  <div style={{ marginTop: 15, textAlign: "center" }}>
-    <img
-      src={preview}
-      alt="Preview"
-      style={{
-        width: "100%",
-        maxWidth: 300,
-        maxHeight: 200,
-        objectFit: "cover",
-        borderRadius: 10,
-        border: "2px solid #ddd"
-      }}
-    />
-    <button
-      onClick={() => {
-        if (preview) URL.revokeObjectURL(preview);
-        setPreview(null);
-        setFormData(prev => ({ ...prev, photo: null }));
-        setAnalysisResult(null);
-      }}
-      style={{
-        marginTop: 10,
-        padding: "5px 10px",
-        backgroundColor: "#f44336",
-        border: "none",
-        borderRadius: 5
-      }}
-    >
-      Remove Image
-    </button>
-  </div>
-)}
-
+          <div style={{ marginTop: 15, textAlign: "center" }}>
+            <img
+              src={preview}
+              alt="Preview"
+              style={{
+                width: "100%",
+                maxWidth: 300,
+                maxHeight: 200,
+                objectFit: "cover",
+                borderRadius: 10,
+                border: "2px solid #ddd",
+              }}
+            />
+            <button
+              onClick={() => {
+                if (preview) URL.revokeObjectURL(preview);
+                setPreview(null);
+                setFormData((prev) => ({ ...prev, photo: null }));
+                setAnalysisResult(null);
+              }}
+              style={{
+                marginTop: 10,
+                padding: "5px 10px",
+                backgroundColor: "#f44336",
+                border: "none",
+                borderRadius: 5,
+              }}
+            >
+              Remove Image
+            </button>
+          </div>
+        )}
 
         {/* Quick analyze */}
         {formData.photo && (
-          <button type="button" onClick={handleQuickAnalyze} style={{ marginTop: 15, padding: "10px 15px", backgroundColor: "#4CAF50", border: "none", borderRadius: 5, width: "100%" }}>
+          <button
+            type="button"
+            onClick={handleQuickAnalyze}
+            style={{
+              marginTop: 15,
+              padding: "10px 15px",
+              backgroundColor: "#4CAF50",
+              border: "none",
+              borderRadius: 5,
+              width: "100%",
+            }}
+          >
             🔍 Analyze Image
           </button>
         )}
 
         {/* Analysis result */}
         {analysisResult && (
-          <div style={{ marginTop: 15, padding: 15, border: "1px solid #ccc", borderRadius: 5, color: "black", backgroundColor: "#f9f9f9" }}>
+          <div
+            style={{
+              marginTop: 15,
+              padding: 15,
+              border: "1px solid #ccc",
+              borderRadius: 5,
+              color: "black",
+              backgroundColor: "#f9f9f9",
+            }}
+          >
             <h4 style={{ marginBottom: 10 }}>Image Analysis:</h4>
-            <p><strong>Category:</strong> {analysisResult.category}</p>
-            <p><strong>Importance:</strong> {analysisResult.importance || "N/A"}</p>
-            <p><strong>Cost Estimate:</strong> ${analysisResult.cost_estimate}</p>
-            <p><strong>Confidence:</strong> {((analysisResult.confidence ?? 0) * 100).toFixed(1)}%</p>
-            <p><strong>Public Property:</strong> {analysisResult.is_public_property ? "Yes" : "No"}</p>
+            <p>
+              <strong>Category:</strong> {analysisResult.category}
+            </p>
+            <p>
+              <strong>Importance:</strong> {analysisResult.importance || "N/A"}
+            </p>
+            <p>
+              <strong>Cost Estimate:</strong> ${analysisResult.cost_estimate}
+            </p>
+            <p>
+              <strong>Confidence:</strong>{" "}
+              {((analysisResult.confidence ?? 0) * 100).toFixed(1)}%
+            </p>
+            <p>
+              <strong>Public Property:</strong>{" "}
+              {analysisResult.is_public_property ? "Yes" : "No"}
+            </p>
           </div>
         )}
 
         {/* Location buttons */}
         <div style={{ marginTop: 15 }}>
-          <button type="button" onClick={handleUseCurrentLocation}>📍 Use My Current Location</button>
-          <button type="button" onClick={handleSelectOnMap}>🗺 Select on Map</button>
+          <button type="button" onClick={handleUseCurrentLocation}>
+            📍 Use My Current Location
+          </button>
+          <button type="button" onClick={handleSelectOnMap}>
+            🗺 Select on Map
+          </button>
         </div>
 
         {/* Leaflet Map */}
         {showMap && (
           <div style={{ height: 300, marginTop: 15 }}>
-            <MapContainer center={[20.5937, 78.9629]} zoom={5} style={{ height: "100%", width: "100%" }}>
-              <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution="&copy; OpenStreetMap" />
-              <LocationPicker 
-  setLocation={setLocation} 
-  setAddress={setAddress} 
-  setDistrict={setDistrict} 
-  setFormData={setFormData}
-/>{formData.location && (
-  <Marker position={[formData.location.lat, formData.location.lng]} />
-)}
-
-
+            <MapContainer
+              center={[20.5937, 78.9629]}
+              zoom={5}
+              style={{ height: "100%", width: "100%" }}
+            >
+              <TileLayer
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                attribution="&copy; OpenStreetMap"
+              />
+              <LocationPicker
+                setLocation={setLocation}
+                setAddress={setAddress}
+                setDistrict={setDistrict}
+                setFormData={setFormData}
+              />
+              {formData.location && (
+                <Marker
+                  position={[formData.location.lat, formData.location.lng]}
+                >
+                  <Popup>{formData.address || "Selected location"}</Popup>
+                </Marker>
+              )}
             </MapContainer>
           </div>
         )}
 
         {/* Show address & district */}
-        {address && <p style={{ marginTop: 10, fontStyle: "italic", color: "green" }}>📍 Location: {address}</p>}
-        {district && <p style={{ fontStyle: "italic", color: "white" }}>🏢 District: {district}</p>}
+        {address && (
+          <p style={{ marginTop: 10, fontStyle: "italic", color: "green" }}>
+            📍 Location: {address}
+          </p>
+        )}
+        {district && (
+          <p style={{ fontStyle: "italic", color: "white" }}>
+            🏢 District: {district}
+          </p>
+        )}
 
         <br />
-        <button onClick={handleSubmit} disabled={loading}>{loading ? "⏳ Processing..." : "✅ Submit"}</button>
+        <button onClick={handleSubmit} disabled={loading}>
+          {loading ? "⏳ Processing..." : "✅ Submit"}
+        </button>
         <button
           type="reset"
-          onClick={() => { setFormData({ problemType: "", description: "", photo: null }); if (preview && preview.startsWith("blob:")) try { URL.revokeObjectURL(preview) } catch {}; setPreview(null); setLocation(null); setAddress(""); setDistrict(""); setShowMap(false); setAnalysisResult(null); }}
+          onClick={() => {
+            setFormData({ problemType: "", description: "", photo: null });
+            if (preview && preview.startsWith("blob:"))
+              try {
+                URL.revokeObjectURL(preview);
+              } catch {}
+            setPreview(null);
+            setLocation(null);
+            setAddress("");
+            setDistrict("");
+            setShowMap(false);
+            setAnalysisResult(null);
+          }}
           disabled={loading}
         >
           🔄 Reset

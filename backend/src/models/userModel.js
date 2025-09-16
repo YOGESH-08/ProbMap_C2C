@@ -43,6 +43,23 @@ const userSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    // Volunteer fields
+    isVolunteer: {
+      type: Boolean,
+      default: false,
+    },
+    volunteerStatus: {
+      type: String,
+      enum: ["pending", "approved", "rejected"],
+      default: "pending",
+    },
+    volunteerPoints: {
+      type: Number,
+      default: 0,
+    },
+    volunteerSince: {
+      type: Date,
+    },
   },
   { timestamps: true }
 );

@@ -30,6 +30,20 @@ export default function Dashboard() {
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const BACKEND_URL = "http://localhost:5000";
 
+  const [volunteerRequests, setVolunteerRequests] = useState([]);
+  const [claims, setClaims] = useState([]);
+  const [volLoading, setVolLoading] = useState(false);
+
+  // Toasts
+  const [toasts, setToasts] = useState([]);
+  const showToast = (message, type = "info") => {
+    const id = Math.random().toString(36).slice(2);
+    setToasts((prev) => [...prev, { id, message, type }]);
+    setTimeout(() => {
+      setToasts((prev) => prev.filter((t) => t.id !== id));
+    }, 3000);
+  };
+
   const fetchCityIssues = async () => {
     try {
       const res = await fetch(`${BACKEND_URL}/admin/city-issues`, {
@@ -52,7 +66,7 @@ export default function Dashboard() {
 
   const handleFetchIssuesByType = async (type) => {
     try {
-      const res = await fetch(`http://localhost:5000/admin/${type}Issues`, {
+      const res = await fetch(`${BACKEND_URL}/admin/${type}Issues`, {
         method: "GET",
         credentials: "include",
       });
@@ -70,6 +84,11 @@ export default function Dashboard() {
     if (activeView === "acknowledged") handleFetchIssuesByType("acknowledged");
     if (activeView === "resolved") handleFetchIssuesByType("resolved");
     if (activeView === "issues") fetchCityIssues();
+    if (activeView === "volunteerRequests") fetchVolunteerRequests();
+    if (activeView === "volunteers") {
+      /* no fetch needed, handled in ApprovedVolunteers */
+    }
+    if (activeView === "claims") fetchClaims();
   }, [activeView]);
 
   const handleUpdateStatus = async (id, status, message = "") => {
@@ -85,9 +104,10 @@ export default function Dashboard() {
       setIssues((prev) =>
         prev.map((issue) => (issue._id === id ? updatedIssue : issue))
       );
+      showToast(`Issue ${status} successfully`, "success");
     } catch (err) {
       console.error(err);
-      // alert("Error updating issue: " + err.message);
+      showToast("Error updating issue: " + err.message, "error");
     }
   };
 
@@ -96,132 +116,118 @@ export default function Dashboard() {
     setActiveView("map");
   };
 
-  // Report generation functions
-  const generateReport = async () => {
-    setReportLoading(true);
+  const fetchAdminProfile = async () => {
     try {
-      const reportPayload = {
-        reportType: "comprehensive",
-        ...reportFilters,
-      };
-
-      // Convert time period to date range
-      const now = new Date();
-      let startDate, endDate;
-
-      switch (reportFilters.timePeriod) {
-        case "7days":
-          startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-          break;
-        case "30days":
-          startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-          break;
-        case "3months":
-          startDate = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
-          break;
-        case "1year":
-          startDate = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
-          break;
-        default:
-          startDate = null;
-      }
-
-      endDate = now;
-
-      if (startDate) {
-        reportPayload.startDate = startDate.toISOString();
-        reportPayload.endDate = endDate.toISOString();
-      }
-
-      const response = await fetch(`${BACKEND_URL}/admin/reports/generate`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+      const res = await fetch(`${BACKEND_URL}/admin/profile`, {
         credentials: "include",
-        body: JSON.stringify(reportPayload),
       });
-
-      if (!response.ok) throw new Error("Failed to generate report");
-
-      const data = await response.json();
-      setReportData(data);
-    } catch (error) {
-      console.error("Error generating report:", error);
-      alert("Failed to generate report. Please try again.");
-    } finally {
-      setReportLoading(false);
+      if (!res.ok) throw new Error("Failed to fetch admin profile");
+      const data = await res.json();
+      setAdminProfile(data);
+      console.log("Fetched Admin Profile:", data);
+    } catch (err) {
+      console.error("Error fetching admin profile:", err);
     }
   };
 
-  const exportReportCSV = async () => {
-    setReportLoading(true);
+  // Volunteers admin
+  const fetchVolunteerRequests = async () => {
     try {
-      const reportPayload = {
-        reportType: "comprehensive",
-        ...reportFilters,
-      };
-
-      // Convert time period to date range
-      const now = new Date();
-      let startDate, endDate;
-
-      switch (reportFilters.timePeriod) {
-        case "7days":
-          startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-          break;
-        case "30days":
-          startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-          break;
-        case "3months":
-          startDate = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
-          break;
-        case "1year":
-          startDate = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
-          break;
-        default:
-          startDate = null;
-      }
-
-      endDate = now;
-
-      if (startDate) {
-        reportPayload.startDate = startDate.toISOString();
-        reportPayload.endDate = endDate.toISOString();
-      }
-
-      const response = await fetch(`${BACKEND_URL}/admin/reports/export-csv`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+      setVolLoading(true);
+      const res = await fetch(`${BACKEND_URL}/volunteer/admin/requests`, {
         credentials: "include",
-        body: JSON.stringify(reportPayload),
       });
-
-      if (!response.ok) throw new Error("Failed to export report");
-
-      // Create download link
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.style.display = "none";
-      a.href = url;
-      a.download = `issues-report-${
-        new Date().toISOString().split("T")[0]
-      }.csv`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error("Error exporting report:", error);
-      alert("Failed to export report. Please try again.");
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to load requests");
+      setVolunteerRequests(data);
+    } catch (e) {
+      console.error(e);
+      showToast(e.message, "error");
     } finally {
-      setReportLoading(false);
+      setVolLoading(false);
     }
   };
 
-  // Check if device is mobile
+  const updateVolunteerStatus = async (userId, action) => {
+    try {
+      const res = await fetch(
+        `${BACKEND_URL}/volunteer/admin/requests/${userId}`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ action }),
+        }
+      );
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to update status");
+      fetchVolunteerRequests();
+      showToast(`Request ${action}d`, "success");
+    } catch (e) {
+      showToast(e.message, "error");
+    }
+  };
+
+  const updateVolunteerStatusWithReason = async (userId, action, reason) => {
+    try {
+      const res = await fetch(
+        `${BACKEND_URL}/volunteer/admin/requests/${userId}`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ action, reason }),
+        }
+      );
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to update status");
+      fetchVolunteerRequests();
+      showToast(`Request ${action}ed`, "success");
+    } catch (e) {
+      showToast(e.message, "error");
+    }
+  };
+
+  const fetchClaims = async () => {
+    try {
+      setVolLoading(true);
+      const res = await fetch(`${BACKEND_URL}/volunteer/admin/claims`, {
+        credentials: "include",
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to load claims");
+      setClaims(data);
+    } catch (e) {
+      console.error(e);
+      showToast(e.message, "error");
+    } finally {
+      setVolLoading(false);
+    }
+  };
+
+  const reviewClaim = async (issueId, action) => {
+    try {
+      const form = new FormData();
+      form.append("action", action);
+      const res = await fetch(
+        `${BACKEND_URL}/volunteer/admin/claims/${issueId}/review`,
+        {
+          method: "POST",
+          credentials: "include",
+          body: form,
+        }
+      );
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to review claim");
+      fetchClaims();
+      // Refresh issues so resolved appears immediately in Issues view
+      fetchCityIssues();
+      showToast(`Claim ${action}d`, "success");
+    } catch (e) {
+      showToast(e.message, "error");
+    }
+  };
+
   useEffect(() => {
     const checkIsMobile = () => {
       setIsMobile(window.innerWidth <= 768);
@@ -255,27 +261,9 @@ export default function Dashboard() {
     }
   };
 
-  const fetchAdminProfile = async () => {
-    try {
-      const res = await fetch(`${BACKEND_URL}/admin/profile`, {
-        credentials: "include",
-      });
-      if (!res.ok) throw new Error("Failed to fetch admin profile");
-      const data = await res.json();
-      setAdminProfile(data);
-      console.log("Fetched Admin Profile:", data);
-    } catch (err) {
-      console.error("Error fetching admin profile:", err);
-    }
-  };
-
   useEffect(() => {
     if (activeView === "public") fetchUsers();
   }, [activeView]);
-
-  useEffect(() => {
-    fetchAdminProfile();
-  }, []);
 
   const handleLogout = async () => {
     try {
@@ -389,7 +377,144 @@ export default function Dashboard() {
             </div>
           </div>
         );
-
+      case "volunteerRequests":
+        return (
+          <div className="pending-content volunteer-requests">
+            <div className="section-header">
+              <h2>
+                <i className="fa-solid fa-user-plus"></i> Volunteer Requests
+              </h2>
+              <div className="section-actions">
+                <button
+                  className="btn-refresh"
+                  onClick={fetchVolunteerRequests}
+                >
+                  <i className="fa-solid fa-rotate"></i> Refresh
+                </button>
+              </div>
+            </div>
+            {volLoading ? (
+              <p>Loading...</p>
+            ) : volunteerRequests.length === 0 ? (
+              <div className="empty-state">
+                <i className="fa-regular fa-circle-check"></i>
+                <p>No pending requests.</p>
+              </div>
+            ) : (
+              <div className="issues-list">
+                {volunteerRequests.map((u) => (
+                  <div key={u._id} className="issue-card volunteer-card">
+                    <div className="volunteer-head">
+                      <div>
+                        <strong>{u.fullName}</strong>
+                        <div className="muted">{u.email}</div>
+                        <div className="muted">
+                          District: {u.volunteerDistrict}
+                        </div>
+                      </div>
+                      <div className="request-actions">
+                        <button
+                          className="btn btn-approve"
+                          onClick={() =>
+                            updateVolunteerStatus(u._id, "approve")
+                          }
+                        >
+                          <i className="fa-solid fa-check"></i> Approve
+                        </button>
+                        <button
+                          className="btn btn-reject-outline"
+                          onClick={() => {
+                            const reason =
+                              prompt("Reason for rejection?") || "";
+                            updateVolunteerStatusWithReason(
+                              u._id,
+                              "reject",
+                              reason
+                            );
+                          }}
+                        >
+                          <i className="fa-solid fa-xmark"></i> Reject
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        );
+      case "volunteers":
+        return (
+          <div className="pending-content approved-volunteers">
+            <div className="section-header">
+              <h2>
+                <i className="fa-solid fa-people-carry-box"></i> Approved
+                Volunteers
+              </h2>
+            </div>
+            <ApprovedVolunteers
+              BACKEND_URL={BACKEND_URL}
+              showToast={showToast}
+            />
+          </div>
+        );
+      case "claims":
+        return (
+          <div className="pending-content">
+            <h2>Volunteer Claims</h2>
+            {volLoading ? (
+              <p>Loading...</p>
+            ) : claims.length === 0 ? (
+              <p>No submitted claims.</p>
+            ) : (
+              <div className="issues-list">
+                {claims.map((c) => (
+                  <div key={c._id} className="issue-card">
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                      }}
+                    >
+                      <div>
+                        <strong>{c.title}</strong>
+                        <div style={{ fontSize: 12 }}>{c.district}</div>
+                        <div style={{ fontSize: 12 }}>
+                          Submitted:{" "}
+                          {new Date(
+                            c.volunteerClaim?.submittedAt
+                          ).toLocaleString()}
+                        </div>
+                      </div>
+                      <div>
+                        <button
+                          className="btn-ack"
+                          onClick={() => reviewClaim(c._id, "approve")}
+                        >
+                          Approve
+                        </button>
+                        <button
+                          className="btn-reject"
+                          onClick={() => reviewClaim(c._id, "reject")}
+                          style={{ marginLeft: 8 }}
+                        >
+                          Reject
+                        </button>
+                      </div>
+                    </div>
+                    {c.volunteerClaim?.proofImageUrl && (
+                      <img
+                        src={c.volunteerClaim.proofImageUrl}
+                        alt="proof"
+                        style={{ maxWidth: 220, borderRadius: 8, marginTop: 8 }}
+                      />
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        );
       case "public":
         return (
           <div className="public-content">
@@ -632,7 +757,6 @@ export default function Dashboard() {
             )}
           </div>
         );
-
       case "reports":
         return (
           <div className="reports-content">
@@ -1414,6 +1538,31 @@ export default function Dashboard() {
     }
   };
 
+  const generateReport = async () => {
+    setReportLoading(true);
+    try {
+      const params = new URLSearchParams(reportFilters).toString();
+      const res = await fetch(
+        `${BACKEND_URL}/admin/generate-report?${params}`,
+        {
+          credentials: "include",
+        }
+      );
+      if (!res.ok) throw new Error("Failed to generate report");
+      const data = await res.json();
+      setReportData(data);
+      showToast("Report generated", "success");
+    } catch (err) {
+      showToast("Error generating report: " + err.message, "error");
+    } finally {
+      setReportLoading(false);
+    }
+  };
+
+  const exportReportCSV = () => {
+    showToast("CSV export not implemented yet.", "info");
+  };
+
   return (
     <div className="app-container">
       {isMobile && (
@@ -1519,6 +1668,39 @@ export default function Dashboard() {
             <li>
               <a
                 className={`nav-link ${
+                  activeView === "volunteerRequests" ? "active" : ""
+                }`}
+                onClick={() => handleNavClick("volunteerRequests")}
+              >
+                <i className="fa-solid fa-user-plus"></i>
+                <span>Volunteer Requests</span>
+              </a>
+            </li>
+            <li>
+              <a
+                className={`nav-link ${
+                  activeView === "volunteers" ? "active" : ""
+                }`}
+                onClick={() => handleNavClick("volunteers")}
+              >
+                <i className="fa-solid fa-people-carry-box"></i>
+                <span>Volunteers</span>
+              </a>
+            </li>
+            <li>
+              <a
+                className={`nav-link ${
+                  activeView === "claims" ? "active" : ""
+                }`}
+                onClick={() => handleNavClick("claims")}
+              >
+                <i className="fa-solid fa-clipboard-check"></i>
+                <span>Claims</span>
+              </a>
+            </li>
+            <li>
+              <a
+                className={`nav-link ${
                   activeView === "public" ? "active" : ""
                 }`}
                 onClick={() => handleNavClick("public")}
@@ -1538,28 +1720,6 @@ export default function Dashboard() {
                 <span>Reports</span>
               </a>
             </li>
-            {/* <li>
-              <a
-                className={`nav-link ${
-                  activeView === "integrations" ? "active" : ""
-                }`}
-                onClick={() => handleNavClick("integrations")}
-              >
-                <i className="fa-solid fa-plug"></i>
-                <span>Integrations</span>
-              </a>
-            </li> */}
-            {/* <li>
-              <a
-                className={`nav-link ${
-                  activeView === "monthly" ? "active" : ""
-                }`}
-                onClick={() => handleNavClick("monthly")}
-              >
-                <i className="fa-solid fa-chart-column"></i>
-                <span>Monthly Reports</span>
-              </a>
-            </li> */}
             <li>
               <a
                 className={`nav-link ${activeView === "map" ? "active" : ""}`}
@@ -1572,11 +1732,7 @@ export default function Dashboard() {
           </ul>
 
           {/* Logout Button */}
-          <div className="bottom-links" style={{ paddingTop: "120px" }}>
-            {/* <a className="nav-link" href="#">
-              <i className="fa-solid fa-gear"></i>
-              <span>Settings</span>
-            </a> */}
+          <div className="bottom-links">
             <a className="nav-link" href="#" onClick={handleLogout}>
               <i className="fa-solid fa-arrow-right-from-bracket"></i>
               <span>Sign out</span>
@@ -1585,7 +1741,6 @@ export default function Dashboard() {
         </nav>
       </aside>
 
-      {/* Mobile overlay */}
       {isMobile && sidebarOpen && (
         <div
           className="sidebar-overlay"
@@ -1594,12 +1749,16 @@ export default function Dashboard() {
       )}
 
       <main className="main">
-        {/* <header className="navbar">
-          <div className="company">ProbMap</div>
-        </header> */}
-
         <div className="content-area">{renderContent()}</div>
       </main>
+      {/* Toasts */}
+      <div className="toast-container">
+        {toasts.map((t) => (
+          <div key={t.id} className={`toast ${t.type}`}>
+            {t.message}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
@@ -1835,6 +1994,80 @@ function IssueCard({ issue, onUpdateStatus, onShowOnMap }) {
           </button>
         </div>
       )}
+    </div>
+  );
+}
+
+function ApprovedVolunteers({ BACKEND_URL, showToast }) {
+  const [list, setList] = React.useState([]);
+  const [loading, setLoading] = React.useState(false);
+  const load = async () => {
+    try {
+      setLoading(true);
+      const res = await fetch(`${BACKEND_URL}/volunteer/admin/volunteers`, {
+        credentials: "include",
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to load volunteers");
+      setList(data);
+    } catch (e) {
+      console.error(e);
+      showToast && showToast(e.message, "error");
+    } finally {
+      setLoading(false);
+    }
+  };
+  React.useEffect(() => {
+    load();
+  }, []);
+
+  const removeVolunteer = async (userId) => {
+    const reason = prompt("Reason for removal?") || "";
+    try {
+      const res = await fetch(
+        `${BACKEND_URL}/volunteer/admin/volunteers/${userId}`,
+        {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ reason }),
+        }
+      );
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to remove volunteer");
+      load();
+      showToast && showToast("Volunteer removed", "success");
+    } catch (e) {
+      showToast && showToast(e.message, "error");
+    }
+  };
+
+  if (loading) return <p>Loading...</p>;
+  if (list.length === 0) return <p>No approved volunteers.</p>;
+  return (
+    <div className="issues-list">
+      {list.map((v) => (
+        <div key={v._id} className="issue-card volunteer-card">
+          <div className="volunteer-head">
+            <div>
+              <strong>{v.fullName}</strong>
+              <div className="muted">{v.email}</div>
+              <div className="muted">District: {v.volunteerDistrict}</div>
+              <span className="badge points">
+                <i className="fa-solid fa-star"></i> {v.volunteerPoints} pts
+              </span>
+            </div>
+            <div className="request-actions">
+              <button
+                className="btn btn-danger-outline"
+                onClick={() => removeVolunteer(v._id)}
+              >
+                <i className="fa-solid fa-trash"></i> Remove
+              </button>
+            </div>
+          </div>
+        </div>
+      ))}
     </div>
   );
 }

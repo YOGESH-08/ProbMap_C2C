@@ -9,16 +9,17 @@ import Why from "./assets/components/Why";
 import Acard from "./assets/components/Acard";
 import AuthForms from "./assets/components/Authforms";
 import Footer from "./assets/components/Footer";
-import { auth } from "../src/assets/components/firebase/firebase"; 
+import { auth } from "../src/assets/components/firebase/firebase";
 import { onAuthStateChanged } from "firebase/auth";
 import UserIssues from "./assets/components/UserIssues";
+import VolunteerIssues from "./assets/components/VolunteerIssues";
 
 function Home1() {
   return (
     <>
-    <Slider/>
-    <Home/>
-    <Why/>
+      <Slider />
+      <Home />
+      <Why />
     </>
   );
 }
@@ -55,8 +56,15 @@ function App() {
         <Routes>
           <Route path="/" element={<Home1 />} />
           <Route path="/report" element={<Upload />} />
-          <Route path="/pending" element={<UserIssues filterStatus="pending" />} />
-          <Route path="/history" element={<UserIssues filterStatus="history" />} />
+          <Route
+            path="/pending"
+            element={<UserIssues filterStatus="pending" />}
+          />
+          <Route
+            path="/history"
+            element={<UserIssues filterStatus="history" />}
+          />
+          <Route path="/volunteer" element={<VolunteerIssues />} />
         </Routes>
       </Router>
     </>
