@@ -102,26 +102,47 @@ export default function VolunteerIssues() {
   if (loading) return <p>Loading...</p>;
   if (error) return <p style={{ color: "red" }}>{error}</p>;
 
-  if (!status || status.volunteerStatus === "none") {
-    return (
-      <div style={{ padding: 20 }}>
+ if (!status || status.volunteerStatus === "none") {
+  return (
+    <div style={{ padding: 20,marginTop:200, display: "flex", justifyContent: "center" }}>
+      <div style={{ textAlign: "center", maxWidth: 400 }}>
         <h2>Volunteer Program</h2>
         <p>
           Register as a volunteer to help verify and resolve issues in your
           district.
         </p>
-        <div style={{ marginTop: 10 }}>
+        <div style={{ marginTop: 10, display: "flex", gap: 8, justifyContent: "center" }}>
           <input
             placeholder="Your district"
             value={district}
             onChange={(e) => setDistrict(e.target.value)}
-            style={{ padding: 8, marginRight: 8 }}
+            style={{
+              padding: 8,
+              borderRadius: 6,
+              marginTop:25,
+              border: "1px solid #ccc",
+              width: "60%",
+            }}
           />
-          <button onClick={handleRegister}>Register as Volunteer</button>
+          <button
+            onClick={handleRegister}
+            style={{
+              padding: "8px 16px",
+              borderRadius: 6,
+              background: "#1976d2",
+              color: "#fff",
+              border: "none",
+              cursor: "pointer",
+            }}
+          >
+            Register as Volunteer
+          </button>
         </div>
       </div>
-    );
-  }
+    </div>
+  );
+}
+
 
   if (status.volunteerStatus === "pending") {
     return (

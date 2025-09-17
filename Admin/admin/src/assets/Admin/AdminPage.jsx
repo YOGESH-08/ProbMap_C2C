@@ -150,19 +150,20 @@ export default function Dashboard() {
 
   const updateVolunteerStatus = async (userId, action) => {
     try {
+      const status = action === "approve" ? "approved" : "rejected";
       const res = await fetch(
         `${BACKEND_URL}/volunteer/admin/requests/${userId}`,
         {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           credentials: "include",
-          body: JSON.stringify({ action }),
+          body: JSON.stringify({ status }),
         }
       );
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to update status");
       fetchVolunteerRequests();
-      showToast(`Request ${action}d`, "success");
+      showToast(`Request ${status}`, "success");
     } catch (e) {
       showToast(e.message, "error");
     }
@@ -170,19 +171,20 @@ export default function Dashboard() {
 
   const updateVolunteerStatusWithReason = async (userId, action, reason) => {
     try {
+      const status = action === "approve" ? "approved" : "rejected";
       const res = await fetch(
         `${BACKEND_URL}/volunteer/admin/requests/${userId}`,
         {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           credentials: "include",
-          body: JSON.stringify({ action, reason }),
+          body: JSON.stringify({ status, reason }),
         }
       );
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to update status");
       fetchVolunteerRequests();
-      showToast(`Request ${action}ed`, "success");
+      showToast(`Request ${status}`, "success");
     } catch (e) {
       showToast(e.message, "error");
     }
@@ -207,14 +209,15 @@ export default function Dashboard() {
 
   const reviewClaim = async (issueId, action) => {
     try {
-      const form = new FormData();
-      form.append("action", action);
+      const status = action === "approve" ? "approved" : "rejected";
+      const body = { status };
       const res = await fetch(
         `${BACKEND_URL}/volunteer/admin/claims/${issueId}/review`,
         {
           method: "POST",
           credentials: "include",
-          body: form,
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
         }
       );
       const data = await res.json();
@@ -222,7 +225,7 @@ export default function Dashboard() {
       fetchClaims();
       // Refresh issues so resolved appears immediately in Issues view
       fetchCityIssues();
-      showToast(`Claim ${action}d`, "success");
+      showToast(`Claim ${status}`, "success");
     } catch (e) {
       showToast(e.message, "error");
     }
@@ -313,6 +316,64 @@ export default function Dashboard() {
       case "dashboard":
         return (
           <div className="dashboard-content">
+            <div className="dashboard-landing">
+              <div className="admin-hero">
+                <div>
+                  <h2>
+                    Welcome back
+                    {adminProfile ? `, ${adminProfile.fullName}` : ""}
+                  </h2>
+                  <p>Manage issues, volunteers and claims efficiently.</p>
+                </div>
+                <div>
+                  <button
+                    className="btn-view"
+                    onClick={() => handleNavClick("issues")}
+                  >
+                    View Issues
+                  </button>
+                </div>
+              </div>
+              <div className="admin-quick-actions">
+                <div className="admin-action">
+                  <h4>Pending Issues</h4>
+                  <p>Review and acknowledge new reports.</p>
+                  <button
+                    className="btn"
+                    onClick={() => handleNavClick("pending")}
+                  >
+                    Go
+                  </button>
+                </div>
+                <div className="admin-action">
+                  <h4>Volunteer Requests</h4>
+                  <p>Approve or reject volunteer applications.</p>
+                  <button
+                    className="btn"
+                    onClick={() => handleNavClick("volunteerRequests")}
+                  >
+                    Go
+                  </button>
+                </div>
+                <div className="admin-action">
+                  <h4>Claims</h4>
+                  <p>Review resolution claims with proofs.</p>
+                  <button
+                    className="btn"
+                    onClick={() => handleNavClick("claims")}
+                  >
+                    Go
+                  </button>
+                </div>
+                <div className="admin-action">
+                  <h4>Map View</h4>
+                  <p>Visualize issues on an interactive map.</p>
+                  <button className="btn" onClick={() => handleNavClick("map")}>
+                    Open Map
+                  </button>
+                </div>
+              </div>
+            </div>
             <MyChart />
           </div>
         );
@@ -1541,13 +1602,22 @@ export default function Dashboard() {
   const generateReport = async () => {
     setReportLoading(true);
     try {
-      const params = new URLSearchParams(reportFilters).toString();
-      const res = await fetch(
-        `${BACKEND_URL}/admin/generate-report?${params}`,
-        {
-          credentials: "include",
-        }
-      );
+      // Convert to Date objects before sending
+      const bodyPayload = {
+        ...reportFilters,
+        startDate: reportFilters.startDate
+          ? new Date(reportFilters.startDate)
+          : null,
+        endDate: reportFilters.endDate ? new Date(reportFilters.endDate) : null,
+      };
+
+      const res = await fetch(`${BACKEND_URL}/admin/reports/generate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(bodyPayload),
+      });
+
       if (!res.ok) throw new Error("Failed to generate report");
       const data = await res.json();
       setReportData(data);

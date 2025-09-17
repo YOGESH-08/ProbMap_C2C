@@ -50,8 +50,8 @@ const userSchema = new mongoose.Schema(
     },
     volunteerStatus: {
       type: String,
-      enum: ["pending", "approved", "rejected"],
-      default: "pending",
+      enum: ["pending", "approved", "rejected", "none"],
+      default: "none",
     },
     volunteerPoints: {
       type: Number,

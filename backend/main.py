@@ -72,7 +72,7 @@ def analyze_image_with_gemini_sync(image: Image.Image) -> dict:
         If it shows public property damage (pothole, street light, road damage, drainage, traffic signals, pipelines, public tap, or similar), return a JSON object with these fields:
         - category (Pothole, Traffic Signals, Pipelines, Drainage, Street Light, Public Tap, Road Damage, Garbage, related to public disturbance Others)
         - importance (High, Medium, Low)
-        - cost_estimate (USD range, e.g. "500-1000")
+        - cost_estimate (INR range, e.g. "500-1000")
         - confidence (0-1 float)
         - is_public_property (true)
 
