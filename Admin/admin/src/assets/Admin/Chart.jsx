@@ -24,6 +24,8 @@ ChartJS.register(
   Legend
 );
 
+const BACKEND_URL = import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL || "http://localhost:5001";
+
 const MyChart = () => {
   const [chartData, setChartData] = useState(null);
   const [overallStats, setOverallStats] = useState(null);
@@ -35,7 +37,7 @@ const MyChart = () => {
 
   const fetchStatistics = async () => {
     try {
-      const response = await fetch("http://localhost:5000/admin/statistics", {
+      const response = await fetch(`${BACKEND_URL}/admin/statistics`, {
         credentials: "include",
       });
       if (!response.ok) throw new Error("Failed to fetch statistics");

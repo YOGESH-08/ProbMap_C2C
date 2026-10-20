@@ -2,6 +2,8 @@ import "./config.js";
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
+import path from "path";
+import { fileURLToPath } from "url";
 import connectDB from "./database/connection.js";
 import cookieParser from "cookie-parser";
 import router from "./routes/index.js";
@@ -10,6 +12,9 @@ import { swaggerSpec } from "./config/swagger.js";
 import { config } from "./config/index.js";
 import { globalLimiter, authLimiter } from "./middlewares/rateLimiter.js";
 import { errorHandler, notFoundHandler } from "./middlewares/errorHandler.js";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 
@@ -34,6 +39,9 @@ app.use(globalLimiter);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+
+// Static uploads serving
+app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
 // Auth routes get stricter rate limiting
 app.use("/auth", authLimiter);

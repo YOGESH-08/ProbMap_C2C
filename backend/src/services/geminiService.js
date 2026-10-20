@@ -12,30 +12,31 @@ const model = genAI.getGenerativeModel({
   }
 });
 
-const ANALYSIS_PROMPT = `Analyze this image and determine if it shows damage to public property.
+const ANALYSIS_PROMPT = `Analyze this image and determine if it shows damage to public infrastructure or civic issues (such as potholes, road cracks, broken streetlights, water leakage, pipelines, blocked drainage, damaged sidewalks, traffic signals, garbage dumps, or public taps).
 
-If it shows public property damage (pothole, street light, road damage, drainage, traffic signals, pipelines, public tap, or similar), return a JSON object with these fields:
-- category (Pothole, Traffic Signals, Pipelines, Drainage, Street Light, Public Tap, Road Damage, Garbage, related to public disturbance Others)
-- importance (High, Medium, Low)
-- cost_estimate (INR range, e.g. "500-1000")
-- confidence (0-1 float)
-- is_public_property (true)
+Return ONLY a JSON object with:
+- category: One of ("Pothole", "Road Damage", "Drainage", "Street Light", "Pipelines", "Traffic Signals", "Garbage", "Public Tap", "Others")
+- importance: "High", "Medium", or "Low"
+- cost_estimate: estimated repair cost range (e.g. "2000-5000 INR" or "$150-$300")
+- confidence: float between 0.7 and 1.0
+- is_public_property: boolean (true if public road/infrastructure, false if strictly private home/interior)
 
-If it shows people, animals, private property, nature scenes, mobile phone or any non-public-property content, or public property damage in mobile return:
-- category: "Others"
-- importance: null
-- cost_estimate: "0"
-- confidence: (0-1 float)
-- is_public_property: false
-
-Example for public property: {"category": "Pothole", "importance": "High", "cost_estimate": "500-1000", "confidence": 0.85, "is_public_property": true}
-Example for non-public property: {"category": "Others", "importance": null, "cost_estimate": "0", "confidence": 0.9, "is_public_property": false}`;
+If there is NO public damage (e.g. indoor room, pet, food, selfie), return:
+{"category": "Others", "importance": "Low", "cost_estimate": "0", "confidence": 0.9, "is_public_property": false}`;
 
 export function parseLLMResponse(responseText) {
   try {
     const jsonMatch = responseText.match(/\{[\s\S]*\}/);
     if (jsonMatch) {
-      return JSON.parse(jsonMatch[0]);
+      const parsed = JSON.parse(jsonMatch[0]);
+      if (parsed.category) {
+        // Normalize category capitalization
+        parsed.category = parsed.category.charAt(0).toUpperCase() + parsed.category.slice(1);
+      }
+      if (parsed.importance) {
+        parsed.importance = parsed.importance.charAt(0).toUpperCase() + parsed.importance.slice(1);
+      }
+      return parsed;
     }
   } catch (e) {
     console.error("Failed to parse LLM response:", e);
