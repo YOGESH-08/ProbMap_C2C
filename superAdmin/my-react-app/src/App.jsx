@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import toast, { Toaster } from "react-hot-toast";
 import "./App.css";
 
+const API_URL = import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL || "http://localhost:5001";
+
 const SuperAdminDashboard = () => {
   // ---------------- Authentication ----------------
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -35,7 +37,7 @@ const SuperAdminDashboard = () => {
 
   const fetchAdmins = async () => {
     try {
-      const res = await fetch("http://localhost:5000/superadmin", { credentials: "include" });
+      const res = await fetch(`${API_URL}/superadmin`, { credentials: "include" });
       if (!res.ok) throw new Error("Failed to fetch admins");
       const data = await res.json();
       setAdmins(data);
@@ -55,7 +57,7 @@ const SuperAdminDashboard = () => {
     setError("");
 
     try {
-      const res = await fetch("http://localhost:5000/superadmin/create", {
+      const res = await fetch(`${API_URL}/superadmin/create`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -77,7 +79,7 @@ const SuperAdminDashboard = () => {
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this admin?")) return;
     try {
-      const res = await fetch(`http://localhost:5000/superadmin/${id}`, {
+      const res = await fetch(`${API_URL}/superadmin/${id}`, {
         method: "DELETE",
         credentials: "include",
       });

@@ -1,189 +1,153 @@
 import React from "react";
-import {
-  FaMapMarkerAlt,
-  FaCalendarAlt,
-  FaClock,
-  FaUser,
-  FaExclamationTriangle,
-} from "react-icons/fa";
+import { 
+  MapPin, 
+  Calendar, 
+  Clock, 
+  ExternalLink, 
+  Trash2, 
+  ShieldAlert, 
+  MessageSquare, 
+  AlertCircle,
+  CheckCircle2,
+  XCircle,
+  HelpCircle
+} from "lucide-react";
 import "./EnhancedDetails.css";
-import img from "../photo/zoro.jpg";
 
-const EnhancedAcard = ({ details, onDelete }) => {
+const fallbackImg = "https://images.unsplash.com/photo-1515162816999-a0c47dc192f7?auto=format&fit=crop&w=600&q=80";
+
+export default function EnhancedAcard({ details, onDelete }) {
   const handleViewOnMap = () => {
     if (!details.location?.lat || !details.location?.lng) return;
     const { lat, lng } = details.location;
     const url = `https://www.google.com/maps?q=${lat},${lng}`;
-    window.open(url, "_blank");
+    window.open(url, "_blank", "noopener,noreferrer");
   };
 
-  const getStatusColor = (status) => {
-    switch (status?.toLowerCase()) {
+  const getStatusBadge = (status) => {
+    const s = status?.toLowerCase() || "pending";
+    switch (s) {
       case "resolved":
-        return "#4caf50";
+        return { label: "Resolved", class: "badge-resolved", icon: CheckCircle2 };
       case "acknowledged":
-        return "#2196f3";
-      case "pending":
-        return "#ff9800";
+        return { label: "Acknowledged", class: "badge-acknowledged", icon: AlertCircle };
       case "rejected":
-        return "#f44336";
+        return { label: "Rejected", class: "badge-rejected", icon: XCircle };
       default:
-        return "#9e9e9e";
-    }
-  };
-
-  const getStatusIcon = (status) => {
-    switch (status?.toLowerCase()) {
-      case "resolved":
-        return "fa-check-circle";
-      case "acknowledged":
-        return "fa-info-circle";
-      case "pending":
-        return "fa-clock";
-      case "rejected":
-        return "fa-times-circle";
-      default:
-        return "fa-question-circle";
+        return { label: "Pending Review", class: "badge-pending", icon: Clock };
     }
   };
 
   const formatDate = (dateString) => {
-    if (!dateString) return "Unknown";
-    const date = new Date(dateString);
+    if (!dateString) return { date: "Recent", time: "" };
+    const d = new Date(dateString);
+    if (isNaN(d.getTime())) return { date: "Recent", time: "" };
     return {
-      date: date.toLocaleDateString(),
-      time: date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+      date: d.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" }),
+      time: d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
     };
   };
 
-  const reportDateTime = formatDate(details.createdAt || details.reportedAt);
+  const statusInfo = getStatusBadge(details.status);
+  const StatusIcon = statusInfo.icon;
+  const createdDate = formatDate(details.createdAt || details.reportedAt);
 
   return (
-    <div className="enhanced-issue-card">
-      {/* Status Badge */}
-      <div
-        className="status-badge"
-        style={{ backgroundColor: getStatusColor(details.status) }}
-      >
-        <i className={`fa-solid ${getStatusIcon(details.status)}`}></i>
-        <span>{details.status || "Pending"}</span>
+    <div className="enhanced-card glass-card">
+      {/* CARD HEADER / IMAGE */}
+      <div className="card-image-wrapper">
+        <img
+          src={details.imageUrl || fallbackImg}
+          alt={details.name || details.title || "Reported Issue"}
+          className="card-img"
+          onError={(e) => {
+            e.target.onerror = null;
+            e.target.src = fallbackImg;
+          }}
+        />
+        
+        {/* Floating Status Badge */}
+        <div className={`card-status-badge ${statusInfo.class}`}>
+          <StatusIcon className="badge-status-icon" />
+          <span>{statusInfo.label}</span>
+        </div>
+
+        {/* Priority Badge */}
+        {details.severity && (
+          <div className={`card-priority-badge priority-${details.severity.toLowerCase()}`}>
+            <ShieldAlert className="priority-icon" />
+            <span>{details.severity} Priority</span>
+          </div>
+        )}
       </div>
 
-      <div className="card-content">
-        {/* Image Section */}
-        <div className="image-section">
-          <img src={details.imageUrl || img} alt={details.name} />
-          <div className="image-overlay">
-            <h2 className="issue-title">{details.name}</h2>
-            <div className="location-info">
-              <FaMapMarkerAlt className="location-icon" />
-              <span>
-                {details.district || details.location
-                  ? `${details.district || "Unknown District"}`
-                  : "No location"}
-              </span>
-            </div>
+      {/* CARD BODY */}
+      <div className="card-body">
+        <div className="card-title-row">
+          <h3 className="card-issue-title">{details.name || details.title || "Property Damage"}</h3>
+          {details.category && <span className="category-pill">{details.category}</span>}
+        </div>
+
+        {/* Location Subtitle */}
+        <div className="card-location-row">
+          <MapPin className="card-loc-icon" />
+          <span>{details.district || "Unknown District"}</span>
+        </div>
+
+        {/* Description */}
+        <p className="card-description">{details.description}</p>
+
+        {/* Official Admin Response Section */}
+        <div className={`admin-response-box ${details.status === "pending" ? "is-pending" : "is-responded"}`}>
+          <div className="admin-box-header">
+            <MessageSquare className="admin-msg-icon" />
+            <span>Authority Response</span>
+          </div>
+          <p className="admin-msg-text">
+            {details.adminDescription || "Your report is under review by local city administrators."}
+          </p>
+          {details.respondedAt && (
+            <span className="admin-msg-time">
+              Responded {formatDate(details.respondedAt).date}
+            </span>
+          )}
+        </div>
+
+        {/* Metadata Footer Bar */}
+        <div className="card-meta-bar">
+          <div className="meta-item">
+            <Calendar className="meta-icon" />
+            <span>{createdDate.date}</span>
+          </div>
+
+          <div className="meta-item">
+            <Clock className="meta-icon" />
+            <span>{createdDate.time}</span>
           </div>
         </div>
 
-        {/* Details Section */}
-        <div className="details-section">
-          {/* Issue Description */}
-          <div className="description-section">
-            <h3>
-              <i className="fa-solid fa-align-left"></i>
-              Issue Description
-            </h3>
-            <p>{details.description}</p>
-          </div>
+        {/* Card Actions */}
+        <div className="card-actions">
+          <button
+            onClick={handleViewOnMap}
+            disabled={!details.location?.lat || !details.location?.lng}
+            className="btn-secondary card-action-btn flex-1"
+          >
+            <ExternalLink className="btn-icon" />
+            <span>View on Map</span>
+          </button>
 
-          {/* Admin Response */}
-          <div className="admin-response-section">
-            <h3>
-              <i className="fa-solid fa-shield-halved"></i>
-              Admin Response
-            </h3>
-            <div
-              className={`response-content ${
-                details.status === "pending" ? "pending" : "responded"
-              }`}
-            >
-              <p>{details.adminDescription || "No response yet"}</p>
-              {details.respondedAt && (
-                <span className="response-date">
-                  Responded: {formatDate(details.respondedAt).date}
-                </span>
-              )}
-            </div>
-          </div>
-
-          {/* Issue Metadata */}
-          <div className="metadata-section">
-            <div className="metadata-grid">
-              <div className="metadata-item">
-                <FaCalendarAlt className="metadata-icon" />
-                <div className="metadata-content">
-                  <span className="metadata-label">Reported Date</span>
-                  <span className="metadata-value">{reportDateTime.date}</span>
-                </div>
-              </div>
-
-              <div className="metadata-item">
-                <FaClock className="metadata-icon" />
-                <div className="metadata-content">
-                  <span className="metadata-label">Reported Time</span>
-                  <span className="metadata-value">{reportDateTime.time}</span>
-                </div>
-              </div>
-
-              {details.severity && (
-                <div className="metadata-item">
-                  <FaExclamationTriangle className="metadata-icon" />
-                  <div className="metadata-content">
-                    <span className="metadata-label">Priority</span>
-                    <span
-                      className={`priority-badge priority-${details.severity.toLowerCase()}`}
-                    >
-                      {details.severity}
-                    </span>
-                  </div>
-                </div>
-              )}
-
-              {details.district && (
-                <div className="metadata-item">
-                  <FaMapMarkerAlt className="metadata-icon" />
-                  <div className="metadata-content">
-                    <span className="metadata-label">District</span>
-                    <span className="metadata-value">{details.district}</span>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="actions-section">
+          {onDelete && (
             <button
-              onClick={handleViewOnMap}
-              className="action-btn primary"
-              disabled={!details.location?.lat || !details.location?.lng}
+              onClick={onDelete}
+              className="btn-danger-outline card-action-btn"
+              title="Delete Issue Report"
             >
-              <i className="fa-solid fa-map"></i>
-              View on Map
+              <Trash2 className="btn-icon text-rose" />
             </button>
-
-            {onDelete && (
-              <button onClick={onDelete} className="action-btn danger">
-                <i className="fa-solid fa-trash"></i>
-                Delete Issue
-              </button>
-            )}
-          </div>
+          )}
         </div>
       </div>
     </div>
   );
-};
-
-export default EnhancedAcard;
+}

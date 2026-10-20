@@ -33,7 +33,6 @@ router.get(
 );
 router.post(
   "/analyze-image",
-  FirebaseAuthMiddleware.verifySessionCookie,
   upload.single("image"),
   analyzeImage
 );

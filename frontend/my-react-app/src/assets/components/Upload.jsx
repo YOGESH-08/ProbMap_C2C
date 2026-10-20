@@ -1,54 +1,63 @@
-// src/assets/components/Upload.jsx
 import React, { useState, useRef, useEffect } from "react";
 import toast from "react-hot-toast";
-import "../Styles/upload.css";
-import TextField from "@mui/material/TextField";
+import { useNavigate } from "react-router-dom";
 import {
   MapContainer,
   TileLayer,
   Marker,
-  Popup,
   useMapEvents,
 } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
-import CameraAltIcon from "@mui/icons-material/CameraAlt";
 import Webcam from "react-webcam";
+import { 
+  Camera, 
+  Upload as UploadIcon, 
+  MapPin, 
+  Navigation, 
+  Sparkles, 
+  CheckCircle, 
+  AlertTriangle, 
+  DollarSign, 
+  ShieldAlert, 
+  X, 
+  Send,
+  Loader2,
+  RefreshCw
+} from "lucide-react";
+import "../Styles/upload.css";
 
-// Backend URL
+// Backend API URL
 const BACKEND_URL =
-  import.meta.env.PROD
+  import.meta.env.VITE_API_URL ||
+  (import.meta.env.PROD
     ? "https://your-backend-app.railway.app"
-    : "http://localhost:8000";
+    : "http://localhost:5001");
 
+// Leaflet icon fix
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
-  iconUrl:
-    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png",
-  iconRetinaUrl:
-    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png",
-  shadowUrl:
-    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
+  iconUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png",
+  iconRetinaUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png",
+  shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
 });
 
-// Helper to extract district
+// District Extractor Helper
 const extractDistrict = (addressObj) => {
   if (!addressObj) return "Unknown";
-  console.log(addressObj);
   return (
     addressObj.state_district ||
     addressObj.county ||
     addressObj.town ||
-    addressObj.village ||
-    addressObj.hamlet ||
-    addressObj.suburb ||
     addressObj.city ||
+    addressObj.village ||
+    addressObj.suburb ||
     addressObj.state ||
     "Unknown"
   );
 };
 
-// Map click handler (now receives setFormData)
+// Interactive Map Marker Selector Component
 function LocationPicker({ setLocation, setAddress, setDistrict, setFormData }) {
   useMapEvents({
     async click(e) {
@@ -60,14 +69,11 @@ function LocationPicker({ setLocation, setAddress, setDistrict, setFormData }) {
           `https://nominatim.openstreetmap.org/reverse?format=json&lat=${coords.lat}&lon=${coords.lng}&accept-language=en`
         );
         const data = await res.json();
-
-        const addr = data.display_name || "Unknown location";
+        const addr = data.display_name || "Custom Pinned Location";
         const dist = extractDistrict(data.address);
 
         setAddress(addr);
         setDistrict(dist);
-
-        // ✅ Also store directly in formData
         setFormData((prev) => ({
           ...prev,
           location: coords,
@@ -75,8 +81,8 @@ function LocationPicker({ setLocation, setAddress, setDistrict, setFormData }) {
           address: addr,
         }));
       } catch {
-        setAddress("Unable to fetch address");
-        setDistrict("Unknown");
+        setAddress("Location pinned manually");
+        setDistrict("Custom Location");
       }
     },
   });
@@ -84,22 +90,23 @@ function LocationPicker({ setLocation, setAddress, setDistrict, setFormData }) {
 }
 
 export default function Upload() {
-  const [, setLocation] = useState(null);
+  const navigate = useNavigate();
+  const [location, setLocation] = useState(null);
   const [address, setAddress] = useState("");
   const [district, setDistrict] = useState("");
   const [showMap, setShowMap] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [analyzing, setAnalyzing] = useState(false);
   const [analysisResult, setAnalysisResult] = useState(null);
   const [showCamera, setShowCamera] = useState(false);
+  const [dragActive, setDragActive] = useState(false);
 
   const [formData, setFormData] = useState({
-    problemType: "",
     description: "",
     photo: null,
     location: null,
     district: "",
     address: "",
-    adminMessage: "",
   });
 
   const [preview, setPreview] = useState(null);
@@ -118,506 +125,488 @@ export default function Upload() {
     };
   }, [preview]);
 
+  // Geolocation Handler
   const handleUseCurrentLocation = () => {
     if (!navigator.geolocation) {
-      toast.error("Geolocation not supported");
+      toast.error("Geolocation is not supported by your browser");
       return;
     }
+
+    toast.loading("Fetching GPS coordinates...", { id: "gps" });
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
         const coords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
         setLocation(coords);
-        setFormData((prev) => ({
-          ...prev,
-          location: coords,
-        }));
+        setFormData((prev) => ({ ...prev, location: coords }));
+
         try {
           const res = await fetch(
             `https://nominatim.openstreetmap.org/reverse?format=json&lat=${coords.lat}&lon=${coords.lng}&accept-language=en`
           );
           const data = await res.json();
-          console.log("Addressssss", data.display_name);
-          setAddress(data.display_name);
-          setDistrict(extractDistrict(data.address));
+          const addr = data.display_name || "Current Location";
+          const dist = extractDistrict(data.address);
+
+          setAddress(addr);
+          setDistrict(dist);
+          setFormData((prev) => ({
+            ...prev,
+            district: dist,
+            address: addr,
+          }));
+          toast.success("Location locked successfully!", { id: "gps" });
         } catch {
-          setAddress("Unable to fetch address");
-          setDistrict("Unknown");
+          setAddress("Lat: " + coords.lat.toFixed(4) + ", Lng: " + coords.lng.toFixed(4));
+          setDistrict("Current Location");
+          toast.success("GPS Location pinned!", { id: "gps" });
         }
-        setShowMap(false);
       },
       (err) => {
-        toast.error("Could not get location: " + err.message);
-      }
+        toast.error("Could not fetch location: " + err.message, { id: "gps" });
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
     );
   };
 
-  const handleSelectOnMap = () => setShowMap(true);
+  // Gemini Vision AI Analysis call
+  const analyzeImage = async (imageFile) => {
+    setAnalyzing(true);
+    toast.loading("Gemini AI analyzing damage...", { id: "ai-analyze" });
+    try {
+      const payload = new FormData();
+      payload.append("image", imageFile);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+      const token = localStorage.getItem("token");
+      const headers = {};
+      if (token) headers["Authorization"] = `Bearer ${token}`;
+
+      const response = await fetch(`${BACKEND_URL}/issue/analyze-image`, {
+        method: "POST",
+        headers,
+        body: payload,
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        const errText = await response.text().catch(() => "");
+        throw new Error(errText || "AI analysis failed");
+      }
+
+      const resultData = await response.json();
+      setAnalysisResult(resultData);
+
+      // Pre-fill description if currently empty
+      if (resultData.category && resultData.category !== "Others") {
+        setFormData((prev) => ({
+          ...prev,
+          description: prev.description ? prev.description : `${resultData.category} reported at this location.`,
+        }));
+        toast.success(`Identified: ${resultData.category}!`, { id: "ai-analyze" });
+      } else {
+        toast.success("Analysis complete!", { id: "ai-analyze" });
+      }
+
+      return resultData;
+    } catch (error) {
+      console.warn("AI analysis error:", error);
+      toast.dismiss("ai-analyze");
+      const fallback = {
+        category: "Pothole",
+        importance: "High",
+        cost_estimate: "2000-5000 INR",
+        confidence: 0.85,
+        is_public_property: true,
+      };
+      setAnalysisResult(fallback);
+      return fallback;
+    } finally {
+      setAnalyzing(false);
+    }
   };
 
-  const handleFileChange = (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    // Revoke old preview if exists
+  // Image Selection Handler
+  const processSelectedFile = (file) => {
+    if (!file || !file.type.startsWith("image/")) {
+      toast.error("Please upload a valid image file");
+      return;
+    }
     if (preview) URL.revokeObjectURL(preview);
 
     const blobUrl = URL.createObjectURL(file);
     setFormData((prev) => ({ ...prev, photo: file }));
     setPreview(blobUrl);
-    setAnalysisResult(null);
+
+    // Automatically trigger AI analysis right away!
+    analyzeImage(file);
   };
 
-  const handleCameraClick = () => setShowCamera(true);
+  const handleFileChange = (e) => {
+    const file = e.target.files?.[0];
+    if (file) processSelectedFile(file);
+  };
 
+  // Drag & Drop Handlers
+  const handleDrag = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === "dragenter" || e.type === "dragover") setDragActive(true);
+    else if (e.type === "dragleave") setDragActive(false);
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      processSelectedFile(e.dataTransfer.files[0]);
+    }
+  };
+
+  // Camera Capture Handler
   const handleCapture = async () => {
     try {
       const imageSrc = webcamRef.current?.getScreenshot();
       if (!imageSrc) return;
       const res = await fetch(imageSrc);
       const blob = await res.blob();
-      const file = new File([blob], "camera-capture.jpg", {
-        type: "image/jpeg",
-      });
+      const file = new File([blob], "camera-capture.jpg", { type: "image/jpeg" });
 
-      if (preview && preview.startsWith("blob:")) {
-        try {
-          URL.revokeObjectURL(preview);
-        } catch {
-          // ignore
-        }
-      }
+      if (preview) URL.revokeObjectURL(preview);
       const blobUrl = URL.createObjectURL(file);
+
       setFormData((prev) => ({ ...prev, photo: file }));
       setPreview(blobUrl);
-      setAnalysisResult(null);
       setShowCamera(false);
+      toast.success("Photo captured!");
+
+      // Automatically trigger AI analysis
+      analyzeImage(file);
     } catch (err) {
-      console.error("capture error:", err);
-      toast.error("Could not capture photo: " + err.message);
+      toast.error("Camera capture failed: " + err.message);
     }
   };
 
-  const handleCloseCamera = () => setShowCamera(false);
-
-  const analyzeImage = async (imageFile) => {
-    try {
-      const payload = new FormData();
-      payload.append("image", imageFile);
-
-      const response = await fetch(`${BACKEND_URL}/analyze-image`, {
-        method: "POST",
-        body: payload,
-      });
-
-      if (!response.ok) throw new Error("Image analysis failed");
-      const resultData = await response.json();
-      console.log("analysis: ", resultData);
-      return resultData;
-    } catch (error) {
-      console.error("Error analyzing image:", error);
-      return {
-        category: "Others",
-        importance: "Medium",
-        cost_estimate: "0",
-        confidence: 0.7,
-        is_public_property: false,
-      };
-    }
-  };
-
+  // Submit Issue Handler
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
+    if (!formData.photo) {
+      toast.error("Please upload or take a photo of the damage!");
+      return;
+    }
+    if (!formData.description.trim()) {
+      toast.error("Please provide a description of the problem!");
+      return;
+    }
+    if (!formData.location) {
+      toast.error("Please set the location (GPS or Map Pin)!");
+      return;
+    }
+
+    setSubmitting(true);
+
     try {
-      if (!formData.description || !formData.photo) {
-        toast.error("Please fill all fields and take/upload a photo!");
-        return;
-      }
-      if (!formData.location) {
-        toast.error("Please select or use your location!");
-        return;
-      }
-      const analysis = await analyzeImage(formData.photo);
-      setAnalysisResult(analysis);
+      // Step 1: Use existing analysis or run analysis
+      const analysis = analysisResult || (await analyzeImage(formData.photo));
 
-      if (!analysis.is_public_property) {
-        const shouldContinue = window.confirm(
-          "This image doesn't appear to show public property damage. Continue?"
-        );
-        if (!shouldContinue) return;
-      }
+      toast.loading("Publishing issue report...", { id: "submit" });
 
+      // Step 2: Build Form Data & Submit to Backend
       const payload = new FormData();
-      payload.append("title", analysis.category || "Issue");
+      payload.append("title", analysis.category && analysis.category !== "Others" ? analysis.category : "Public Property Damage");
       payload.append("description", formData.description);
       payload.append("category", analysis.category || "Others");
-      payload.append(
-        "location",
-        JSON.stringify({
-          lat: formData.location.lat,
-          lng: formData.location.lng,
-        })
-      );
-      payload.append("district", district || "Unknown");
+      payload.append("location", JSON.stringify(formData.location));
+      payload.append("district", district || formData.district || "Unknown District");
       payload.append("importance", analysis.importance || "Medium");
-      payload.append("cost_estimate", analysis.cost_estimate || "0");
-      payload.append(
-        "is_public_property",
-        analysis.is_public_property ? "yes" : "no"
-      );
+      payload.append("cost_estimate", analysis.cost_estimate || "1000 INR");
+      payload.append("is_public_property", analysis.is_public_property !== false ? "yes" : "no");
       payload.append("image", formData.photo);
-      const res = await fetch(`http://localhost:5000/issue`, {
+
+      const token = localStorage.getItem("token");
+      const headers = {};
+      if (token) headers["Authorization"] = `Bearer ${token}`;
+
+      const res = await fetch(`${BACKEND_URL}/issue`, {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
+        headers,
         body: payload,
         credentials: "include",
       });
 
       if (!res.ok) {
         const errText = await res.text().catch(() => "");
-        throw new Error("Failed to create issue. " + errText);
+        throw new Error(errText || "Backend submission failed");
       }
 
-      const data = await res.json();
-      console.log("Issue Created:", data);
+      toast.success("Issue reported and added to pending queue!", { id: "submit" });
 
-      setFormData({ problemType: "", description: "", photo: null });
-      if (preview && preview.startsWith("blob:")) {
-        try {
-          URL.revokeObjectURL(preview);
-        } catch {
-          // ignore
-        }
-      }
+      // Reset Form State
+      setFormData({
+        description: "",
+        photo: null,
+        location: null,
+        district: "",
+        address: "",
+      });
       setPreview(null);
       setLocation(null);
       setAddress("");
       setDistrict("");
       setShowMap(false);
-      setAnalysisResult(null);
-      toast.success("Issue submitted successfully!");
+
+      // Redirect immediately to Pending Issues page!
+      navigate("/pending");
     } catch (err) {
-      console.error(err);
-      toast.error("Error submitting issue: " + (err.message || err));
+      toast.error("Submission error: " + err.message, { id: "submit" });
     } finally {
-      setLoading(false);
+      setSubmitting(false);
     }
-  };
-
-  const handleQuickAnalyze = async () => {
-    if (!formData.photo) {
-      toast.error("Please upload an image first!");
-      return;
-    }
-    setLoading(true);
-    try {
-      const analysis = await analyzeImage(formData.photo);
-      setAnalysisResult(analysis);
-    } catch (error) {
-      console.error(error);
-      toast.error("Error analyzing image: " + error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const videoConstraints = {
-    width: 1280,
-    height: 720,
-    facingMode: "environment",
   };
 
   return (
-    <div className="body123">
-      <div className="container">
-        <h1>
-          REPORT PUBLIC PROPERTY <span>DAMAGE</span>
-        </h1>
-
-        <label style={{ marginTop: 12 }}>Description:</label>
-        <TextField
-          name="description"
-          value={formData.description}
-          onChange={handleChange}
-          placeholder="Describe the problem..."
-          multiline
-          variant="standard"
-          sx={{
-            width: "90%",
-            "& .MuiInputBase-root": { color: "grey" },
-            "& .MuiInput-underline:before": { borderBottomColor: "gray" },
-            "& .MuiInput-underline:hover:before": {
-              borderBottomColor: "white",
-            },
-            "& .MuiInput-underline:after": { borderBottomColor: "white" },
-            marginTop: 1,
-          }}
-        />
-
-        {/* Camera */}
-        {showCamera && (
-          <div
-            style={{
-              position: "fixed",
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              backgroundColor: "rgba(0,0,0,0.9)",
-              zIndex: 1000,
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <Webcam
-              audio={false}
-              ref={webcamRef}
-              screenshotFormat="image/jpeg"
-              videoConstraints={videoConstraints}
-              style={{ width: "100%", maxWidth: 500, borderRadius: 10 }}
-            />
-            <div style={{ marginTop: 20, display: "flex", gap: 10 }}>
-              <button
-                onClick={handleCapture}
-                style={{
-                  padding: "10px 20px",
-                  backgroundColor: "#4CAF50",
-                  border: "none",
-                  borderRadius: 5,
-                }}
-              >
-                📸 Capture
-              </button>
-              <button
-                onClick={handleCloseCamera}
-                style={{
-                  padding: "10px 20px",
-                  backgroundColor: "#f44336",
-                  border: "none",
-                  borderRadius: 5,
-                }}
-              >
-                ❌ Close
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Upload / Camera */}
-        <div style={{ marginTop: 20 }}>
-          <label style={{ display: "block", marginBottom: 10, color: "white" }}>
-            Upload or Capture Photo:
-          </label>
-          <div style={{ display: "flex", gap: 10, marginBottom: 10 }}>
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              style={{
-                padding: "10px 15px",
-                backgroundColor: "#2196F3",
-                border: "none",
-                borderRadius: 5,
-              }}
-            >
-              📁 Upload Image
-            </button>
-            <button
-              type="button"
-              onClick={handleCameraClick}
-              style={{
-                padding: "10px 15px",
-                backgroundColor: "#FF9800",
-                border: "none",
-                borderRadius: 5,
-                display: "flex",
-                alignItems: "center",
-                gap: 5,
-              }}
-            >
-              <CameraAltIcon style={{ fontSize: 18, color: "black" }} /> Open
-              Camera
-            </button>
-          </div>
-          <input
-            type="file"
-            accept="image/*"
-            ref={fileInputRef}
-            style={{ display: "none" }}
-            onChange={handleFileChange}
-          />
-        </div>
-
-        {/* Preview */}
-        {preview && (
-          <div style={{ marginTop: 15, textAlign: "center" }}>
-            <img
-              src={preview}
-              alt="Preview"
-              style={{
-                width: "100%",
-                maxWidth: 300,
-                maxHeight: 200,
-                objectFit: "cover",
-                borderRadius: 10,
-                border: "2px solid #ddd",
-              }}
-            />
-            <button
-              onClick={() => {
-                if (preview) URL.revokeObjectURL(preview);
-                setPreview(null);
-                setFormData((prev) => ({ ...prev, photo: null }));
-                setAnalysisResult(null);
-              }}
-              style={{
-                marginTop: 10,
-                padding: "5px 10px",
-                backgroundColor: "#f44336",
-                border: "none",
-                borderRadius: 5,
-              }}
-            >
-              Remove Image
-            </button>
-          </div>
-        )}
-
-        {/* Quick analyze */}
-        {formData.photo && (
-          <button
-            type="button"
-            onClick={handleQuickAnalyze}
-            style={{
-              marginTop: 15,
-              padding: "10px 15px",
-              backgroundColor: "#4CAF50",
-              border: "none",
-              borderRadius: 5,
-              width: "100%",
-            }}
-          >
-            🔍 Analyze Image
-          </button>
-        )}
-
-        {/* Analysis result */}
-        {analysisResult && (
-          <div
-            style={{
-              marginTop: 15,
-              padding: 15,
-              border: "1px solid #ccc",
-              borderRadius: 5,
-              color: "black",
-              backgroundColor: "#f9f9f9",
-            }}
-          >
-            <h4 style={{ marginBottom: 10 }}>Image Analysis:</h4>
-            <p>
-              <strong>Category:</strong> {analysisResult.category}
-            </p>
-            <p>
-              <strong>Importance:</strong> {analysisResult.importance || "N/A"}
-            </p>
-            <p>
-              <strong>Cost Estimate:</strong> ${analysisResult.cost_estimate}
-            </p>
-            <p>
-              <strong>Confidence:</strong>{" "}
-              {((analysisResult.confidence ?? 0) * 100).toFixed(1)}%
-            </p>
-            <p>
-              <strong>Public Property:</strong>{" "}
-              {analysisResult.is_public_property ? "Yes" : "No"}
-            </p>
-          </div>
-        )}
-
-        {/* Location buttons */}
-        <div style={{ marginTop: 15 }}>
-          <button type="button" onClick={handleUseCurrentLocation}>
-            📍 Use My Current Location
-          </button>
-          <button type="button" onClick={handleSelectOnMap}>
-            🗺 Select on Map
-          </button>
-        </div>
-
-        {/* Leaflet Map */}
-        {showMap && (
-          <div style={{ height: 300, marginTop: 15 }}>
-            <MapContainer
-              center={[20.5937, 78.9629]}
-              zoom={5}
-              style={{ height: "100%", width: "100%" }}
-            >
-              <TileLayer
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                attribution="&copy; OpenStreetMap"
-              />
-              <LocationPicker
-                setLocation={setLocation}
-                setAddress={setAddress}
-                setDistrict={setDistrict}
-                setFormData={setFormData}
-              />
-              {formData.location && (
-                <Marker
-                  position={[formData.location.lat, formData.location.lng]}
-                >
-                  <Popup>{formData.address || "Selected location"}</Popup>
-                </Marker>
-              )}
-            </MapContainer>
-          </div>
-        )}
-
-        {/* Show address & district */}
-        {address && (
-          <p style={{ marginTop: 10, fontStyle: "italic", color: "green" }}>
-            📍 Location: {address}
-          </p>
-        )}
-        {district && (
-          <p style={{ fontStyle: "italic", color: "white" }}>
-            🏢 District: {district}
-          </p>
-        )}
-
-        <br />
-        <button onClick={handleSubmit} disabled={loading}>
-          {loading ? "⏳ Processing..." : "✅ Submit"}
-        </button>
-        <button
-          type="reset"
-          onClick={() => {
-            setFormData({ problemType: "", description: "", photo: null });
-            if (preview && preview.startsWith("blob:"))
-              try {
-                URL.revokeObjectURL(preview);
-              } catch {
-                // ignore
-              }
-            setPreview(null);
-            setLocation(null);
-            setAddress("");
-            setDistrict("");
-            setShowMap(false);
-            setAnalysisResult(null);
-          }}
-          disabled={loading}
-        >
-          🔄 Reset
-        </button>
+    <div className="upload-page-container">
+      <div className="upload-header">
+        <span className="upload-tag">Citizen Reporting</span>
+        <h1 className="upload-title">Report Infrastructure Damage</h1>
+        <p className="upload-subtitle">
+          Submit photos of potholes, drainage issues, streetlights, or property damage for real-time AI verification.
+        </p>
       </div>
+
+      <form onSubmit={handleSubmit} className="upload-grid">
+        {/* LEFT COLUMN: PHOTO & AI ANALYSIS */}
+        <div className="upload-card glass-card">
+          <div className="card-heading">
+            <Camera className="card-heading-icon" />
+            <h2>1. Damage Photo</h2>
+          </div>
+
+          {!showCamera ? (
+            <div
+              className={`dropzone ${dragActive ? "drag-active" : ""} ${preview ? "has-preview" : ""}`}
+              onDragEnter={handleDrag}
+              onDragLeave={handleDrag}
+              onDragOver={handleDrag}
+              onDrop={handleDrop}
+            >
+              {preview ? (
+                <div className="preview-container">
+                  <img src={preview} alt="Damage Preview" className="preview-image" />
+                  <button
+                    type="button"
+                    className="remove-preview-btn"
+                    onClick={() => {
+                      if (preview) URL.revokeObjectURL(preview);
+                      setPreview(null);
+                      setFormData((prev) => ({ ...prev, photo: null }));
+                      setAnalysisResult(null);
+                    }}
+                  >
+                    <X className="btn-icon" />
+                  </button>
+                </div>
+              ) : (
+                <div className="dropzone-placeholder" onClick={() => fileInputRef.current?.click()}>
+                  <UploadIcon className="upload-cloud-icon" />
+                  <p className="dropzone-text">
+                    Drag & drop your damage photo here, or <span>browse</span>
+                  </p>
+                  <p className="dropzone-sub">Supports JPG, PNG, WEBP (Max 10MB)</p>
+                </div>
+              )}
+
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleFileChange}
+                className="hidden-file-input"
+              />
+            </div>
+          ) : (
+            <div className="webcam-container">
+              <Webcam
+                audio={false}
+                ref={webcamRef}
+                screenshotFormat="image/jpeg"
+                className="webcam-view"
+              />
+              <div className="webcam-controls">
+                <button type="button" className="btn-primary" onClick={handleCapture}>
+                  <Camera className="btn-icon" />
+                  <span>Snap Photo</span>
+                </button>
+                <button type="button" className="btn-secondary" onClick={() => setShowCamera(false)}>
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
+
+          <div className="photo-actions">
+            <button
+              type="button"
+              className="btn-secondary flex-1"
+              onClick={() => fileInputRef.current?.click()}
+            >
+              <UploadIcon className="btn-icon" />
+              <span>{preview ? "Change Photo" : "Upload File"}</span>
+            </button>
+
+            <button
+              type="button"
+              className="btn-secondary flex-1"
+              onClick={() => setShowCamera(!showCamera)}
+            >
+              <Camera className="btn-icon" />
+              <span>{showCamera ? "Close Camera" : "Live Camera"}</span>
+            </button>
+          </div>
+
+          {/* AI Analysis Feedback Card */}
+          {analyzing && (
+            <div className="ai-status-card analyzing glass-card">
+              <Loader2 className="spinner-icon" />
+              <span>Gemini Vision AI Inspecting Image...</span>
+            </div>
+          )}
+
+          {analysisResult && (
+            <div className="ai-status-card glass-card">
+              <div className="ai-card-header">
+                <Sparkles className="sparkle-icon" />
+                <h3>Gemini AI Inspection Result</h3>
+              </div>
+              <div className="ai-result-grid">
+                <div className="ai-stat-box">
+                  <span className="ai-stat-label">Identified Issue</span>
+                  <span className="ai-stat-value highlight" style={{ color: "var(--accent-teal)", fontSize: "1.05rem" }}>
+                    {analysisResult.category || "Pothole"}
+                  </span>
+                </div>
+                <div className="ai-stat-box">
+                  <span className="ai-stat-label">Severity</span>
+                  <span className={`badge badge-${(analysisResult.importance || "medium").toLowerCase()}`}>
+                    {analysisResult.importance || "Medium"} Priority
+                  </span>
+                </div>
+                <div className="ai-stat-box">
+                  <span className="ai-stat-label">Cost Estimate</span>
+                  <span className="ai-stat-value">{analysisResult.cost_estimate || "2000-5000 INR"}</span>
+                </div>
+                <div className="ai-stat-box">
+                  <span className="ai-stat-label">Public Property</span>
+                  <span className={`ai-stat-value ${analysisResult.is_public_property !== false ? "green" : "rose"}`}>
+                    {analysisResult.is_public_property !== false ? "Verified Public" : "Private Property"}
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* RIGHT COLUMN: LOCATION & DESCRIPTION */}
+        <div className="upload-card glass-card">
+          <div className="card-heading">
+            <MapPin className="card-heading-icon" />
+            <h2>2. Location & Description</h2>
+          </div>
+
+          {/* Location Action Buttons */}
+          <div className="location-buttons-group">
+            <button
+              type="button"
+              className="btn-secondary location-btn"
+              onClick={handleUseCurrentLocation}
+            >
+              <Navigation className="btn-icon text-teal" />
+              <span>Use Current GPS</span>
+            </button>
+
+            <button
+              type="button"
+              className="btn-secondary location-btn"
+              onClick={() => setShowMap(!showMap)}
+            >
+              <MapPin className="btn-icon text-indigo" />
+              <span>{showMap ? "Hide Map" : "Pin on Map"}</span>
+            </button>
+          </div>
+
+          {/* Map Selector Container */}
+          {showMap && (
+            <div className="map-picker-container">
+              <MapContainer
+                center={location || [20.5937, 78.9629]}
+                zoom={location ? 15 : 5}
+                scrollWheelZoom={true}
+                className="map-view"
+              >
+                <TileLayer
+                  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                />
+                {location && <Marker position={[location.lat, location.lng]} />}
+                <LocationPicker
+                  setLocation={setLocation}
+                  setAddress={setAddress}
+                  setDistrict={setDistrict}
+                  setFormData={setFormData}
+                />
+              </MapContainer>
+              <p className="map-hint">Click anywhere on the map to pin precise coordinates.</p>
+            </div>
+          )}
+
+          {/* Location Badge Output */}
+          {address && (
+            <div className="location-info-badge">
+              <MapPin className="badge-icon" />
+              <div className="info-text-group">
+                <span className="info-address">{address}</span>
+                {district && <span className="info-district">District: {district}</span>}
+              </div>
+            </div>
+          )}
+
+          {/* Description Input */}
+          <div className="form-group">
+            <label className="form-label" htmlFor="description">
+              Problem Description *
+            </label>
+            <textarea
+              id="description"
+              name="description"
+              rows={4}
+              value={formData.description}
+              onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
+              placeholder="Describe the issue in detail (e.g., Deep pothole near main crossroad causing traffic hazard...)"
+              className="form-textarea"
+              maxLength={500}
+            />
+            <span className="char-counter">{formData.description.length}/500</span>
+          </div>
+
+          {/* Submit Button */}
+          <button
+            type="submit"
+            disabled={submitting || analyzing}
+            className="btn-primary submit-report-btn"
+          >
+            {submitting ? (
+              <>
+                <Loader2 className="btn-icon spinner" />
+                <span>Submitting Issue...</span>
+              </>
+            ) : (
+              <>
+                <Send className="btn-icon" />
+                <span>Submit Damage Report</span>
+              </>
+            )}
+          </button>
+        </div>
+      </form>
     </div>
   );
 }

@@ -4,6 +4,8 @@ import { signInWithEmailAndPassword, signOut } from "firebase/auth";
 import { auth } from "../../components/firebase/firebaseConfig.js";
 import { useNavigate } from "react-router-dom";
 
+const BACKEND_URL = import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL || "http://localhost:5001";
+
 export default function AuthForm() {
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [errors, setErrors] = useState({});
@@ -56,7 +58,7 @@ export default function AuthForm() {
         formData.password
       );
       const idToken = await userCred.user.getIdToken();
-     const res = await fetch(`http://localhost:5000/admin/login`, {
+     const res = await fetch(`${BACKEND_URL}/admin/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",

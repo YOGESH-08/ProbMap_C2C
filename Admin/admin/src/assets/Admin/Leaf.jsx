@@ -3,7 +3,7 @@ import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
-const API_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
+const API_URL = import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL || "http://localhost:5001";
 
 import icon from "leaflet/dist/images/marker-icon.png";
 import iconShadow from "leaflet/dist/images/marker-shadow.png";
@@ -50,7 +50,7 @@ const MapSection = ({ selectedIssue }) => {
   useEffect(() => {
     const fetchIssues = async () => {
       try {
-        const res = await fetch(`http://localhost:5000/admin/map-issues`, {
+        const res = await fetch(`${API_URL}/admin/map-issues`, {
           credentials: "include",
         });
         if (!res.ok) throw new Error("Failed to fetch issues");

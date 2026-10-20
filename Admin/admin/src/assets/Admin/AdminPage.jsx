@@ -19,7 +19,7 @@ import ClaimsView from "./ClaimsView.jsx";
 import PublicView from "./PublicView.jsx";
 import ReportsView from "./ReportsView.jsx";
 
-const BACKEND_URL = "http://localhost:5000";
+const BACKEND_URL = import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL || "http://localhost:5001";
 
 export default function Dashboard() {
   const [activeView, setActiveView] = useState("dashboard");
